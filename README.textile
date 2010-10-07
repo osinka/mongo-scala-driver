@@ -4,7 +4,7 @@ mongo-scala-driver is a thin wrapper around "mongo-java-driver":http://www.mongo
 
 bq. The first of all, this is a work in progress and implements only a subset of MongoDB features at the moment.
 
-*"Wiki":http://wiki.github.com/alaz/mongo-scala-driver*
+*"Wiki":http://wiki.github.com/osinka/mongo-scala-driver*
 *"Mailing list":http://groups.google.com/group/mongodb-scala*
 
 h2. Important changes
