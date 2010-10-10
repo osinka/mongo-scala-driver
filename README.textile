@@ -9,6 +9,10 @@ bq. The first of all, this is a work in progress and implements only a subset of
 
 h2. Important changes
 
+h3. Version 0.8.7
+
+* Mongo Java driver 2.2
+
 h3. Version 0.8.6
 
 * Closes "issue 37":http://github.com/alaz/mongo-scala-driver/issues#issue/37 @$addToSet@ modifier.
