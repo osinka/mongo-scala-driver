@@ -11,7 +11,7 @@ h2. Important changes
 
 h3. Version 0.8.7
 
-* Mongo Java driver 2.2
+* Mongo Java driver 2.3
 
 h3. Version 0.8.6
 
