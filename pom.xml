@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.osinka</groupId>
     <artifactId>mongo-scala-driver_2.8.0</artifactId>
-    <version>0.8.8-SNAPSHOT</version>
+    <version>0.8.7-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>MongoDB driver for Scala</name>
     <inceptionYear>2009</inceptionYear>
@@ -39,14 +39,14 @@
     </mailingLists>
 
     <scm>
-        <connection>scm:git:git://github.com/alaz/mongo-scala-driver.git</connection>
-        <developerConnection>scm:git:git@github.com:alaz/mongo-scala-driver.git</developerConnection>
-        <url>http://github.com/alaz/mongo-scala-driver</url>
+        <connection>scm:git:git://github.com/osinka/mongo-scala-driver.git</connection>
+        <developerConnection>scm:git:git@github.com:osinka/mongo-scala-driver.git</developerConnection>
+        <url>http://github.com/osinka/mongo-scala-driver</url>
     </scm>
 
     <issueManagement>
         <system>github</system>
-        <url>http://github.com/alaz/mongo-scala-driver/issues</url>
+        <url>http://github.com/osinka/mongo-scala-driver/issues</url>
     </issueManagement>
 
     <distributionManagement>
