@@ -16,10 +16,29 @@
 
 package com.osinka.mongodb
 
-import com.mongodb.DBAddress
+import java.util.Properties
 
 object Config {
-    val Host = "localhost"
-    val Port = 27017
-    val Database = "test"
+  private val fileName = "database.properties"
+
+  private lazy val properties: List[Properties] =
+    for {classLoader <- getClass.getClassLoader :: Thread.currentThread.getContextClassLoader :: Nil
+         stream <- Option(classLoader.getResourceAsStream(fileName))}
+    yield
+      try {
+        val props = new Properties
+        props.load(stream)
+        props
+      } finally {
+        stream.close
+      }
+
+  private def property[T](k: String)(implicit conv: String => T): Option[T] =
+    properties flatMap{p => Option(p getProperty k)} map {conv} headOption
+    
+  implicit val stringToInt = (s: String) => s.toInt
+
+  lazy val Host = property[String]("mongoHost") getOrElse "localhost"
+  lazy val Port = property[Int]("mongoPort") getOrElse 27017
+  lazy val Database = property[String]("mongoDB") getOrElse "test"
 }
