@@ -35,7 +35,7 @@ object Config {
 
   private def property[T](k: String)(implicit conv: String => T): Option[T] =
     properties flatMap{p => Option(p getProperty k)} map {conv} headOption
-    
+
   implicit val stringToInt = (s: String) => s.toInt
 
   lazy val Host = property[String]("mongoHost") getOrElse "localhost"
