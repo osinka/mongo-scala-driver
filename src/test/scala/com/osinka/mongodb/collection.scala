@@ -67,10 +67,10 @@ object collectionSpec extends Specification("Scala way Mongo collections") {
 
         "insert" in {
             coll must beEmpty
-            coll << Map("key" -> 10)
+            ( coll << Map("key" -> 10) ).getLastError.ok must beTrue
             coll must haveSize(1)
             val dbo: DBObject = Map("key" -> 10)
-            coll << dbo
+            ( coll << dbo ).getLastError.ok must beTrue
             coll must haveSize(2)
             coll.headOption must beSome[DBObject].which{_.get("_id") != null}
         }
@@ -111,7 +111,7 @@ object collectionSpec extends Specification("Scala way Mongo collections") {
         "insert many" in {
             val N = 20
             val objs = for {n <- 1 to N} yield DBO.fromMap(Map("key" -> n))
-            coll << objs
+            ( coll << objs ).getLastError.ok must beTrue
             coll must haveSize(N)
             coll must haveTheSameElementsAs(objs)
         }

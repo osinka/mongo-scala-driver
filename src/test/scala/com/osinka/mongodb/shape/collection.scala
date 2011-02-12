@@ -75,7 +75,7 @@ object collectionSpec extends Specification("Shape collection") {
         }
         "insert many" in {
             val coll = dbColl.of(CaseUser)
-            coll << ((1 to 10) map {x => CaseUser(Const+x)})
+            ( coll << ((1 to 10) map {x => CaseUser(Const+x)}) ).getLastError.ok must beTrue
             coll must haveSize(10)
             coll foreach { _.mongoOID must beSome[ObjectId] }
         }

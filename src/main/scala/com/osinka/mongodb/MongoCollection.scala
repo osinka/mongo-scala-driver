@@ -107,21 +107,25 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
     /**
      * MongoDB <code>insert</code> method
      * @param x object to insert into the collection
+     * @return WriteResult
      */
-    def <<(x: T) {
+    def <<(x: T) = {
         val dbo = serializer.in(x)
-        underlying insert dbo
+        val result = underlying insert dbo
         serializer.mirror(x)(dbo)
+        result
     }
 
     /**
      * MongoDB batch <code>insert</code> method
      * @param xs sequence of objects to insert into the collection in a batch.
+     * @return WriteResult
      */
-    def <<(xs: Seq[T]) {
+    def <<(xs: Seq[T]) = {
         val dboList = xs map {serializer.in}
-        underlying.insert(dboList:_*)
+        val result = underlying.insert(dboList.toArray, underlying.getWriteConcern)
         (xs zip dboList) map {Function.uncurried(serializer.mirror _).tupled}
+        result
     }
 
     /**

@@ -38,7 +38,9 @@ class DBObjectCollection(override val underlying: DBCollection)
     // -- MongoCollection
     override def stringPrefix: String = "DBObjectCollection("+getName+")"
 
-    override def <<(o: DBObject) { underlying.insert(o) }
+    override def <<(o: DBObject) = underlying.insert(o)
+
+    override def <<(objs: Seq[DBObject]) = underlying.insert(objs.toArray, underlying.getWriteConcern)
 
     override def <<?(obj: DBObject): Option[DBObject] = {
         underlying insert obj
