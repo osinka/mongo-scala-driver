@@ -39,7 +39,7 @@ object ArrayOfInt {
 //        }
 
         lazy val * = List(id, messages)
-        override def factory(dbo: DBObject) = for {id(i) <- Some(dbo)} yield new ArrayModel(i)
+        override def factory(dbo: Option[DBObject]) = for {id(i) <- dbo} yield new ArrayModel(i)
     }
 }
 
@@ -59,7 +59,7 @@ object ArrayOfEmbedded {
 //        }
 
         lazy val * = List(id, users)
-        override def factory(dbo: DBObject) = for {id(_id) <- Some(dbo); users(_users) <- Some(dbo)} yield new ArrayModel(_id, _users.toList)
+        override def factory(dbo: Option[DBObject]) = for {id(_id) <- dbo; users(_users) <- dbo} yield new ArrayModel(_id, _users.toList)
     }
 }
 
@@ -82,6 +82,6 @@ object ArrayOfRef {
 //        }
 
         lazy val * = List(id, users)
-        override def factory(dbo: DBObject) = for {id(i) <- Some(dbo)} yield new ArrayModel(i)
+        override def factory(dbo: Option[DBObject]) = for {id(i) <- dbo} yield new ArrayModel(i)
     }
 }

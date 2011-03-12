@@ -108,8 +108,9 @@ trait ShapeFields[T, QueryType] extends FieldContainer
         /**
          * in case of optional field
          *   new Obj(..., field from dbo, ...)
+         * @param dbo specifies Mongo document, never None
          */
-        def from(dbo: DBObject) = unapply(dbo)
+        def from(dbo: Option[DBObject]) = unapply(dbo.get)
 
         // -- MongoField[A]
         override def rep: FieldRep[A]
@@ -197,7 +198,7 @@ trait ShapeFields[T, QueryType] extends FieldContainer
          * in case of optional field
          *   new Obj(..., field from dbo, ...)
          */
-        def from(dbo: DBObject) = unapply(dbo)
+        def from(dbo: Option[DBObject]) = unapply(dbo.get)
 
         // -- MongoField[A]
         override def rep: FieldRep[Map[String,A]]

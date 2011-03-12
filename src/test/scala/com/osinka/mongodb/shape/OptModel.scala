@@ -35,7 +35,7 @@ object OptModel extends ObjectShape[OptModel] {
 
     override def * = List(id, description, comment)
 
-    override def factory(dbo: DBObject) =
-        for {id(i) <- Some(dbo)}
+    override def factory(dbo: Option[DBObject]) =
+        for {id(i) <- dbo}
         yield new OptModel(i, description from dbo)
 }

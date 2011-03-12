@@ -33,10 +33,10 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
 
     /**
      * Every Shape must provide the factory to create object T
-     * @param dbo the document in MongoDB
+     * @param dbo the document in MongoDB, cannot be None
      * @return None if it's impossible to retrieve object T from dbo
      */
-    def factory(dbo: DBObject): Option[T]
+    def factory(dbo: Option[DBObject]): Option[T]
 
     protected def fieldList: List[MongoField[_]] = *
 
@@ -60,7 +60,7 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
     // -- Serializer[T]
     override def in(x: T): DBObject = packFields(x, fieldList)
 
-    override def out(dbo: DBObject) = factory(dbo) map { x =>
+    override def out(dbo: DBObject) = factory(Some(dbo)) map { x =>
         updateFields(x, dbo, fieldList)
         x
     }
