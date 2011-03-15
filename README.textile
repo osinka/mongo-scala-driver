@@ -9,10 +9,19 @@ bq. The first of all, this is a work in progress and implements only a subset of
 
 h2. Important changes
 
+h3. Version 0.8.10
+
+* Mongo Java driver 2.5
+
+h3. Version 0.8.9
+
+* Insert operations return @CommandResult@
+
 h3. Version 0.8.8
 
 * Artifact is now *mongo-scala-driver* (w/o Scala version)
 * Scala 2.8.1
+* Mongo Java driver 2.4
 
 h3. Version 0.8.7
 

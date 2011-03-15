@@ -16,6 +16,7 @@
 
 package com.osinka.mongodb
 
+import util.control.Exception._
 import org.bson.types.ObjectId
 import com.mongodb._
 import wrapper._
@@ -80,10 +81,21 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
           }
         }
 
-    protected def findAndRemove(q: DBObject): Option[T] = Option(underlying.findAndRemove(q)) flatMap serializer.out
+    // FIXME: MongoDB SERVER bug workaround for findAndModify/findAndRemove. http://jira.mongodb.org/browse/SERVER-2757
+    private val noMatchingObjectException: ExceptionCatcher[Option[T]] = {
+      case t: MongoException if t.getCode == -5 && t.getMessage.containsSlice("No matching object found") =>
+        None
+    }
+
+    protected def findAndRemove(q: DBObject): Option[T] =
+      catching(noMatchingObjectException) apply {
+        Option(underlying.findAndRemove(q)) flatMap serializer.out
+      }
 
     protected def findAndModify(q: DBObject, sorting: Option[DBObject], op: DBObject, remove: Boolean, returnNew: Boolean, upsert: Boolean): Option[T] =
-      Option(underlying.findAndModify(q, null, sorting.orNull, remove, op, returnNew, upsert)) flatMap serializer.out
+      catching(noMatchingObjectException) apply { 
+        Option(underlying.findAndModify(q, null, sorting.orNull, remove, op, returnNew, upsert)) flatMap serializer.out
+      }
 
     protected def remove(q: DBObject) {
         underlying remove q
