@@ -101,7 +101,7 @@ trait ShapeFields[T, QueryType] extends FieldContainer
          *   dbo match { case field(value) => ... }
          *
          * or in case of mandatory constructor argument
-         *   for {field(v) <- Some(dbo)} yield new Obj(...., v, ...)
+         *   for {field(v) <- dbo} yield new Obj(...., v, ...)
          */
         def unapply(dbo: DBObject): Option[A] = Option(dbo get mongoFieldName) flatMap storage.deserialize
 
@@ -109,7 +109,7 @@ trait ShapeFields[T, QueryType] extends FieldContainer
          * in case of optional field
          *   new Obj(..., field from dbo, ...)
          */
-        def from(dbo: DBObject) = unapply(dbo)
+        def from(dbo: Option[DBObject]) = unapply(dbo.get)
 
         // -- MongoField[A]
         override def rep: FieldRep[A]
@@ -135,7 +135,7 @@ trait ShapeFields[T, QueryType] extends FieldContainer
          *   dbo match { case field(value) => ... }
          *
          * or in case of mandatory constructor argument
-         *   for {field(v) <- Some(dbo)} yield new Obj(...., v, ...)
+         *   for {field(v) <- dbo} yield new Obj(...., v, ...)
          */
         def unapply(dbo: DBObject): Option[Seq[A]] = Option(dbo get mongoFieldName) map { case dbo: DBObject => unpackField(dbo) }
 
@@ -143,7 +143,7 @@ trait ShapeFields[T, QueryType] extends FieldContainer
          * in case of optional field
          *   new Obj(..., field from dbo, ...)
          */
-        def from(dbo: DBObject) = unapply(dbo)
+        def from(dbo: Option[DBObject]) = unapply(dbo.get)
 
         // -- MongoField[A]
         override def rep: FieldRep[Seq[A]]
@@ -187,7 +187,7 @@ trait ShapeFields[T, QueryType] extends FieldContainer
          *   dbo match { case field(value) => ... }
          *
          * or in case of mandatory constructor argument
-         *   for {field(v) <- Some(dbo)} yield new Obj(...., v, ...)
+         *   for {field(v) <- dbo} yield new Obj(...., v, ...)
          */
         def unapply(dbo: DBObject): Option[Map[String,A]] = Option(dbo get mongoFieldName) map {
             case dbo: DBObject => unpackField(dbo)
@@ -197,7 +197,7 @@ trait ShapeFields[T, QueryType] extends FieldContainer
          * in case of optional field
          *   new Obj(..., field from dbo, ...)
          */
-        def from(dbo: DBObject) = unapply(dbo)
+        def from(dbo: Option[DBObject]) = unapply(dbo.get)
 
         // -- MongoField[A]
         override def rep: FieldRep[Map[String,A]]

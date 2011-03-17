@@ -35,7 +35,7 @@ class RefModelShape(val db: DB, val usersCollName: String) extends ObjectShape[R
 //    }
 
     lazy val * = List(message, user)
-    override def factory(dbo: DBObject) =
-        for {message(m) <- Some(dbo)
-             user(u) <- Some(dbo)} yield new RefModel(m, u)
+    override def factory(dbo: Option[DBObject]) =
+        for {message(m) <- dbo
+             user(u) <- dbo} yield new RefModel(m, u)
 }

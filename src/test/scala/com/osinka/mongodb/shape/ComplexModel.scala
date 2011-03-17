@@ -28,8 +28,8 @@ object ComplexType extends MongoObjectShape[ComplexType] with FunctionalShape[Co
     object messageCount extends ScalarField[Int]("msgs", _.messageCount, None)
 
     override lazy val * = user :: messageCount :: Nil
-    override def factory(dbo: DBObject): Option[ComplexType] =
-        for {user(u) <- Some(dbo)
-             messageCount(x) <- Some(dbo)}
+    override def factory(dbo: Option[DBObject]): Option[ComplexType] =
+        for {user(u) <- dbo
+             messageCount(x) <- dbo}
         yield new ComplexType(u, x)
 }

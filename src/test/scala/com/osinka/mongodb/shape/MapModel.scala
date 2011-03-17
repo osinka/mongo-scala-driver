@@ -32,7 +32,7 @@ object MapOfScalar {
         lazy val counts = Field.map("counts", _.counts, (x: MapModel, l: Map[String,Int]) => x.counts = l)
 
         lazy val * = List(id, counts)
-        override def factory(dbo: DBObject) = for {_id <- id from dbo} yield new MapModel(_id)
+        override def factory(dbo: Option[DBObject]) = for {_id <- id from dbo} yield new MapModel(_id)
     }
 }
 
@@ -60,6 +60,6 @@ object MapOfEmbedded {
         }
 
         lazy val * = List(id, users)
-        override def factory(dbo: DBObject) = for {_id <- id from dbo; _users <- users from dbo} yield new MapModel(_id, _users)
+        override def factory(dbo: Option[DBObject]) = for {_id <- id from dbo; _users <- users from dbo} yield new MapModel(_id, _users)
     }
 }
