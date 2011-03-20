@@ -12,8 +12,8 @@ object InheritanceRootTest extends Application {
   val db = m.getDB("test")
   val entities = db.getCollection("entities") of AbstractEntity
 
-//  entities << InheritedEntity1("InheritedEntity1: f1", "base1")
-//  entities << InheritedEntity2("InheritedEntity2: f2", 555, "base2")
+//  entities << InheritedEntity1("New InheritedEntity1: f1", "base1")
+//  entities << InheritedEntity2("New InheritedEntity2: f2", 555, "base2")
 
   for (e <- entities) println(e)
 
@@ -27,7 +27,7 @@ class AbstractEntity(val base: String) extends MongoObject
 case class InheritedEntity1(f1: String, b: String) extends AbstractEntity(b)
 case class InheritedEntity2(f2: String, i: Int, b: String) extends AbstractEntity(b)
 
-trait AbstractEntityShape[T <: AbstractEntity] extends EntityType[T] {
+trait AbstractEntityShape[T <: AbstractEntity] extends MongoObjectShape[T] {
   val base = Field.scalar("base", _.base)
   def * : List[MongoField[_]] = List(base)
 }
@@ -45,7 +45,7 @@ object InheritedEntity2Shape extends AbstractEntityShape[InheritedEntity2] {
   def factory(dbo: Option[DBObject]) = for (f2(f) <- dbo; i(i) <- dbo; base(b) <- dbo) yield InheritedEntity2(f, i, b)
 }
 
-object AbstractEntity extends InheritanceRootCompanion[AbstractEntity] {
-  def descendants = InheritedEntity2Shape :: InheritedEntity1Shape :: Nil
+object AbstractEntity extends MongoShapeRouter[AbstractEntity] {
+  this :=> InheritedEntity1Shape :=> InheritedEntity2Shape
 }
 

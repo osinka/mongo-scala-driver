@@ -116,22 +116,30 @@ trait MongoObjectShape[T <: MongoObject] extends ObjectShape[T] {
     override def fieldList : List[MongoField[_]] = oid :: super.fieldList
 }
 
-abstract class EntityType[T <: MongoObject : ClassManifest] extends MongoObjectShape[T] {
-  val entityType = classManifest[T].erasure.getName
-}
+trait MongoShapeRouter[T <: MongoObject] extends MongoObjectShape[T] {
+  private[mongodb] var shapes = Map.empty[String, MongoObjectShape[T]]
 
-trait InheritanceRootCompanion[T <: MongoObject] extends MongoObjectShape[T] {
   val fqtn = Field.scalar("fully_qualified_type_name", _.getClass.getName)
-  val shapes: Map[String, EntityType[T]] = Map(descendants.map(d => (d.entityType, d.asInstanceOf[EntityType[T]])) :_*)
 
-  def factory(dbo: Option[DBObject]) = shapes(fqtn from dbo get).factory(dbo)
-
-  override def fieldList: List[MongoField[_]] = fqtn :: super.fieldList
+  def :=> [T1 <: T](shape: MongoObjectShape[T1])(implicit m: ClassManifest[T1]) = {
+    shapes += ((m.erasure.getName, shape.asInstanceOf[MongoObjectShape[T]]))
+    this
+  }
 
   override def in(x: T) =
-    packFields(x, fieldList ::: shapes(x.getClass.getName).fieldList.asInstanceOf[List[MongoField[_]]])
+    packFields(x, fqtn :: shapes(x.getClass.getName).fieldList.asInstanceOf[List[MongoField[_]]])
 
-  def * = Nil
+  override def out(dbo: DBObject) = shapes(fqtn unapply dbo get).factory(Some(dbo)) map { x =>
+    updateFields(x, dbo, shapes(fqtn unapply dbo get).fieldList.asInstanceOf[List[MongoField[_]]])
+    x
+  }
 
-  def descendants: List[EntityType[_]]
+  override def mirror(x: T)(dbo: DBObject) = {
+    updateFields(x, dbo,
+      shapes(fqtn unapply dbo get).fieldList.filter(_.mongoInternal_?).asInstanceOf[List[MongoField[_]]])
+    x
+  }
+
+  def factory(dbo: Option[DBObject]) = None // stuff
+  def * = Nil // stuff
 }
