@@ -13,12 +13,10 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package com.osinka.mongodb
+package shape
 
-package com.osinka.mongodb.shape
-
-import scala.reflect.Manifest
 import com.mongodb.{DBObject, DBCollection}
-import com.osinka.mongodb._
 import wrapper.DBO
 
 /**
@@ -43,7 +41,10 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
     /**
      * Document constraint
      */
-    lazy val constraints = fieldList filterNot {_.mongoInternal_?} map {_.mongoConstraints} reduceLeft {_ and _}
+    lazy val constraints =
+      if (fieldList.filterNot(_.mongoInternal_?).size > 1)
+        fieldList filterNot {_.mongoInternal_?} map {_.mongoConstraints} reduceLeft {_ and _}
+      else QueryTerm[QueryType]()
 
     private[shape] def packFields(x: T, fields: Seq[MongoField[_]]): DBObject =
         DBO.fromMap( (fields foldLeft Map[String,Any]() ) { (m,f) =>
@@ -86,7 +87,7 @@ trait ObjectShape[T] extends ObjectIn[T, T] with Queriable[T] {
 /**
  * Mix-in to make a shape functional
  *
- * FunctionalShape makes a shape with convinient syntactic sugar
+ * FunctionalShape makes a shape with convenient syntactic sugar
  * for converting object to DBObject (apply) and extractor for the opposite
  *
  * E.g.
@@ -108,11 +109,29 @@ trait FunctionalShape[T] { self: ObjectShape[T] =>
 trait MongoObjectShape[T <: MongoObject] extends ObjectShape[T] {
     import org.bson.types.ObjectId
 
-    /**
-     * MongoDB internal Object ID field declaration
-     */
+    /** MongoDB internal Object ID field declaration */
     lazy val oid = Field.optional("_id", (x: T) => x.mongoOID, (x: T, oid: Option[ObjectId]) => x.mongoOID = oid)
 
     // -- ObjectShape[T]
     override def fieldList : List[MongoField[_]] = oid :: super.fieldList
+}
+
+abstract class EntityType[T <: MongoObject : ClassManifest] extends MongoObjectShape[T] {
+  val entityType = classManifest[T].erasure.getName
+}
+
+trait InheritanceRootCompanion[T <: MongoObject] extends MongoObjectShape[T] {
+  val fqtn = Field.scalar("fully_qualified_type_name", _.getClass.getName)
+  val shapes: Map[String, EntityType[T]] = Map(descendants.map(d => (d.entityType, d.asInstanceOf[EntityType[T]])) :_*)
+
+  def factory(dbo: Option[DBObject]) = shapes(fqtn from dbo get).factory(dbo)
+
+  override def fieldList: List[MongoField[_]] = fqtn :: super.fieldList
+
+  override def in(x: T) =
+    packFields(x, fieldList ::: shapes(x.getClass.getName).fieldList.asInstanceOf[List[MongoField[_]]])
+
+  def * = Nil
+
+  def descendants: List[EntityType[_]]
 }
