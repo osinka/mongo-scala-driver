@@ -36,7 +36,7 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
      */
     def factory(dbo: Option[DBObject]): Option[T]
 
-    protected def fieldList: List[MongoField[_]] = *
+    protected[shape] def fieldList: List[MongoField[_]] = *
 
     /**
      * Document constraint
@@ -114,6 +114,33 @@ trait MongoObjectShape[T <: MongoObject] extends ObjectShape[T] {
 
     // -- ObjectShape[T]
     override def fieldList : List[MongoField[_]] = oid :: super.fieldList
+}
+
+trait ObjectInRouter[T <: AnyRef, QT] extends ObjectIn[T, QT] {
+  private[mongodb] var shapes = Map.empty[String, ObjectIn[T, _]]
+  val fqtn = Field.scalar("fully_qualified_type_name", _.getClass.getName)
+
+  override def in(x: T) =
+    packFields(x, fqtn.asInstanceOf[super.MongoField[_]] :: shapes(x.getClass.getName).fieldList.asInstanceOf[List[MongoField[_]]])
+
+  override def out(dbo: DBObject) = shapes(fqtn unapply dbo get).factory(Some(dbo)) map { x =>
+    updateFields(x, dbo, shapes(fqtn unapply dbo get).fieldList.asInstanceOf[List[MongoField[_]]])
+    x
+  }
+
+  override def mirror(x: T)(dbo: DBObject) = {
+    updateFields(x, dbo,
+      shapes(fqtn unapply dbo get).fieldList.filter(_.mongoInternal_?).asInstanceOf[List[MongoField[_]]])
+    x
+  }
+
+  def :=> [T1 <: T](shape: ObjectIn[T1, _])(implicit m: ClassManifest[T1]) = {
+    shapes += ((m.erasure.getName, shape.asInstanceOf[ObjectIn[T, _]]))
+    this
+  }
+
+  def factory(dbo: Option[DBObject]) = None
+  def * = Nil
 }
 
 trait MongoShapeRouter[T <: MongoObject] extends MongoObjectShape[T] {
