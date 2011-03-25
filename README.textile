@@ -9,6 +9,14 @@ bq. The first of all, this is a work in progress and implements only a subset of
 
 h2. Important changes
 
+h3. Version 0.8.11
+
+* Mongo Java driver 2.5.2
+
+Internal:
+
+* Workaround for "SERVER-2757 bug":http://jira.mongodb.org/browse/SERVER-2757 removed: Java driver takes care of this.
+
 h3. Version 0.8.10
 
 * Mongo Java driver 2.5
