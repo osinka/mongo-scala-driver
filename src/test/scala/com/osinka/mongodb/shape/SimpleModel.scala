@@ -24,10 +24,13 @@ case class CaseUser(val name: String) extends MongoObject {
     override def toString = "CaseUser(name="+name+",oid="+mongoOID+")"
 }
 
-trait CaseUserIn[T] extends ObjectIn[CaseUser, T] {
+trait CaseUserIn[T] extends ObjectIn[CaseUser, T] with FactoryPf[CaseUser] {
     object name extends ScalarField[String]("name", _.name, None)
     override lazy val * = name :: Nil
-    override def factory(dbo: DBObject): Option[CaseUser] = for {name(n) <- Some(dbo)} yield new CaseUser(n)
+
+    override val factory: FactoryPF = {
+      case name(n) => CaseUser(n)
+    }
 }
 
 object CaseUser extends MongoObjectShape[CaseUser] with CaseUserIn[CaseUser]

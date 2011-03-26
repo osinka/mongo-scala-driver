@@ -101,6 +101,21 @@ trait FunctionalShape[T] { self: ObjectShape[T] =>
 }
 
 /**
+ * Mix-in to define factory through PartialFunction
+ */
+trait FactoryPf[T] { self: ObjectIn[T,_] =>
+    type FactoryPF = PartialFunction[DBObject, T]
+
+    object ~ {
+       def unapply[A](a: A): Option[(A,A)] = Some((a, a))
+    }
+
+    def factory: FactoryPF
+
+    override def factory(dbo: DBObject): Option[T] = factory.lift(dbo)
+}
+
+/**
  * Shape of MongoObject child.
  *
  * It has mandatory _id and _ns fields

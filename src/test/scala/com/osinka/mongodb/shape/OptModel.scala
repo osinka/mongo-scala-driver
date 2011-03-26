@@ -22,7 +22,7 @@ class OptModel(val id: Int, val description: Option[String]) {
     var comment: Option[String] = None
 }
 
-object OptModel extends ObjectShape[OptModel] {
+object OptModel extends ObjectShape[OptModel] with FactoryPf[OptModel] {
     lazy val id = Field.scalar("id", _.id)
 
     // Hurray! Option[A] field!
@@ -35,7 +35,12 @@ object OptModel extends ObjectShape[OptModel] {
 
     override def * = List(id, description, comment)
 
-    override def factory(dbo: DBObject) =
-        for {id(i) <- Some(dbo)}
-        yield new OptModel(i, description from dbo)
+    val pf1: FactoryPF = {
+      case id(i) ~ description(d) => new OptModel(i, Some(d))
+    }
+    val pf2: FactoryPF = {
+      case id(i) => new OptModel(i, None)
+    }
+
+    override val factory: FactoryPF = pf1 orElse pf2
 }

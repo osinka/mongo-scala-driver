@@ -26,7 +26,7 @@ object ArrayOfInt {
         override def toString = "ArrayModel("+id+", "+messages.mkString("[",",","]")+")"
     }
 
-    object ArrayModel extends ObjectShape[ArrayModel] { shape =>
+    object ArrayModel extends ObjectShape[ArrayModel] with FactoryPf[ArrayModel] { shape =>
         lazy val id = Field.scalar("id", _.id)
 
         lazy val messages = Field.array("messages", _.messages, (x: ArrayModel, l: Seq[Int]) => x.messages = l.toList )
@@ -39,14 +39,16 @@ object ArrayOfInt {
 //        }
 
         lazy val * = List(id, messages)
-        override def factory(dbo: DBObject) = for {id(i) <- Some(dbo)} yield new ArrayModel(i)
+        override val factory: FactoryPF = {
+            case id(i) => new ArrayModel(i)
+        }
     }
 }
 
 object ArrayOfEmbedded {
     class ArrayModel(val id: Int, val users: List[CaseUser])
 
-    object ArrayModel extends ObjectShape[ArrayModel] { shape =>
+    object ArrayModel extends ObjectShape[ArrayModel] with FactoryPf[ArrayModel] { shape =>
         lazy val id = Field.scalar("id", _.id)
 
         object users extends ArrayEmbeddedField[CaseUser]("users", _.users, None) with CaseUserIn[ArrayModel]
@@ -59,7 +61,9 @@ object ArrayOfEmbedded {
 //        }
 
         lazy val * = List(id, users)
-        override def factory(dbo: DBObject) = for {id(_id) <- Some(dbo); users(_users) <- Some(dbo)} yield new ArrayModel(_id, _users.toList)
+        override val factory: FactoryPF = {
+            case id(_id) ~ users(_users) => new ArrayModel(_id, _users.toList)
+        }
     }
 }
 
@@ -68,7 +72,7 @@ object ArrayOfRef {
         var users: List[CaseUser] = Nil
     }
 
-    class ArrayModelShape(val db: DB, val usersCollName: String) extends ObjectShape[ArrayModel] { shape =>
+    class ArrayModelShape(val db: DB, val usersCollName: String) extends ObjectShape[ArrayModel] with FactoryPf[ArrayModel] { shape =>
         lazy val id = Field.scalar("id", _.id)
 
         lazy val users = Field.arrayRef("users", CaseUser collection db.getCollection(usersCollName), _.users, (x: ArrayModel, l: Seq[CaseUser]) => x.users = l.toList )
@@ -82,6 +86,8 @@ object ArrayOfRef {
 //        }
 
         lazy val * = List(id, users)
-        override def factory(dbo: DBObject) = for {id(i) <- Some(dbo)} yield new ArrayModel(i)
+        override val factory: FactoryPF = {
+            case id(i) => new ArrayModel(i)
+        }
     }
 }
