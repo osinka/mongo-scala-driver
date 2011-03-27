@@ -16,6 +16,7 @@
 
 package com.osinka.mongodb.wrapper
 
+import annotation.tailrec
 import com.mongodb.{DBObject, BasicDBObject}
 
 object DBO {
@@ -30,6 +31,7 @@ object DBO {
     def fromMap(m: Map[String,Any]): DBObject = {
         import com.mongodb.{BasicDBObjectBuilder, BasicDBList}
 
+        @tailrec
         def wrap(obj: Any): Option[Any] = obj match {
             case m: Map[_, _] =>
                 // to avoid type erasure warning
@@ -55,15 +57,8 @@ object DBO {
     /**
      * Interpret DBObject as Array and return it as a Seq
      */
-    def toArray(dbo: DBObject): Seq[Any] = {
-        def arrayValues(i: Int): Stream[Any] = {
-            val key = i.toString
-            if (dbo.containsField(key)) Stream.cons(dbo.get(key), arrayValues(i+1))
-            else Stream.empty
-        }
-        
-        arrayValues(0).toList
-    }
+    def toArray(dbo: DBObject): Seq[Any] =
+        Iterator from(0) map {_.toString} takeWhile {dbo.containsField} map{dbo.get} toList
 
     /**
      * Merge many DBObjects into one. The latter can override keys in the former
