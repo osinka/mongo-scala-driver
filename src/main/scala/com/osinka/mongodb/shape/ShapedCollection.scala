@@ -27,9 +27,6 @@ class ShapedCollection[T](override val underlying: DBCollection, val shape: Obje
         extends MongoCollection[T]
         with QueriedCollection[T, ShapedCollection[T]] {
 
-    private lazy val shapeConstraints = shape.constraints.dbo
-    private def embedShapeConstraints(q: DBObject) = DBO.merge(shapeConstraints, q)
-
     /**
      * Update elements
      * @param multi should update all elements
@@ -50,13 +47,13 @@ class ShapedCollection[T](override val underlying: DBCollection, val shape: Obje
      * Remove many elements
      */
     def -=(filters: QueryTerm[T]) {
-      remove(embedShapeConstraints(filters.dbo))
+      remove(filters.dbo)
     }
 
     /**
      * Find and remove the first found document
      */
-    def findAndRemove(filters: QueryTerm[T]): Option[T] = findAndRemove(embedShapeConstraints(filters.dbo))
+    def findAndRemove(filters: QueryTerm[T]): Option[T] = findAndRemove(filters.dbo)
 
     def findAndModify(q: ObjectShape[T]#ShapeQuery, op: ModifyOp[T]): Option[T] =
       findAndModify(q, op, false, false, false)
@@ -66,7 +63,7 @@ class ShapedCollection[T](override val underlying: DBCollection, val shape: Obje
      */
     def findAndModify(q: ObjectShape[T]#ShapeQuery, op: ModifyOp[T], remove: Boolean, returnNew: Boolean, upsert: Boolean): Option[T] = {
       val query = q.query
-      findAndModify(embedShapeConstraints(query.query), query.sorting, op.dbo, remove, returnNew, upsert)
+      findAndModify(query.query, query.sorting, op.dbo, remove, returnNew, upsert)
     }
 
     def findAndModify(qt: QueryTerm[T], op: ModifyOp[T]): Option[T] =
@@ -85,10 +82,5 @@ class ShapedCollection[T](override val underlying: DBCollection, val shape: Obje
     }
 
     // -- MongoCollection
-    override def find(q: DBObject) = underlying.find(embedShapeConstraints(q))
-    override def findOne(q: DBObject) = underlying.findOne(embedShapeConstraints(q))
-    override def getCount(q: DBObject) = find(q).count
-    override def update(q: DBObject, op: DBObject, multi: Boolean) = super.update(embedShapeConstraints(q), op, multi)
-
     override def stringPrefix: String = "ShapedCollection["+shape.getClass.getName+"]("+getName+")"
 }

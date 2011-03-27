@@ -22,7 +22,7 @@ class OptModel(val id: Int, val description: Option[String]) {
     var comment: Option[String] = None
 }
 
-object OptModel extends ObjectShape[OptModel] with FactoryPf[OptModel] {
+object OptModel extends ObjectShape[OptModel] {
     lazy val id = Field.scalar("id", _.id)
 
     // Hurray! Option[A] field!
@@ -33,7 +33,7 @@ object OptModel extends ObjectShape[OptModel] with FactoryPf[OptModel] {
 
     lazy val comment = Field.optional("comment", _.comment, (obj: OptModel, v: Option[String]) => obj.comment = v)
 
-    override def * = List(id, description, comment)
+    override def storeFields(x: OptModel) = List(id, description, comment)
 
     val pf1: FactoryPF = {
       case id(i) ~ description(d) => new OptModel(i, Some(d))

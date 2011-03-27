@@ -28,11 +28,11 @@ object MapOfScalar {
 
     object MapModel extends ObjectShape[MapModel] { shape =>
         lazy val id = Field.scalar("id", _.id)
-
         lazy val counts = Field.map("counts", _.counts, (x: MapModel, l: Map[String,Int]) => x.counts = l)
 
-        lazy val * = List(id, counts)
-        override def factory(dbo: DBObject) = for {_id <- id from dbo} yield new MapModel(_id)
+        override val factory: FactoryPF = {
+          case id(id) => new MapModel(id)
+        }
     }
 }
 
@@ -43,7 +43,6 @@ object MapOfEmbedded {
 
     object MapModel extends ObjectShape[MapModel] { shape =>
         lazy val id = Field.scalar("id", _.id)
-
         object users extends MapEmbeddedField[CaseUser]("users", _.users, None) with CaseUserIn[MapModel] { field =>
 
             /**
@@ -54,12 +53,13 @@ object MapOfEmbedded {
              *
              * if you do not need such queries, there is no need in "apply" here
              */
-            def apply(key: String) = new shape.EmbeddedField[CaseUser](key, _.users(key), None) with CaseUserIn[MapModel] {
+            def apply(key: String) = new shape.EmbeddedField[CaseUser](key, _.users(key), None)(mapFields) with CaseUserIn[MapModel] {
                 override def mongoFieldPath = field.mongoFieldPath ::: super.mongoFieldPath
             }
         }
 
-        lazy val * = List(id, users)
-        override def factory(dbo: DBObject) = for {_id <- id from dbo; _users <- users from dbo} yield new MapModel(_id, _users)
+        override def factory: FactoryPF = {
+          case id(id) ~ users(users) => new MapModel(id, users)
+        }
     }
 }

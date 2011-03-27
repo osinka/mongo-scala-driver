@@ -23,11 +23,10 @@ class ComplexType(val user: CaseUser, val messageCount: Int) extends MongoObject
     override def toString = "ComplexType (" + user + ", " + messageCount + ")"
 }
 
-object ComplexType extends MongoObjectShape[ComplexType] with FunctionalShape[ComplexType] with FactoryPf[ComplexType] {
+object ComplexType extends MongoObjectShape[ComplexType] with FunctionalShape[ComplexType] {
     object user extends EmbeddedField[CaseUser]("user", _.user, None) with CaseUserIn[ComplexType]
     object messageCount extends ScalarField[Int]("msgs", _.messageCount, None)
 
-    override lazy val * = user :: messageCount :: Nil
     override val factory: FactoryPF = {
         case user(u) ~ messageCount(x) => new ComplexType(u, x)
     }

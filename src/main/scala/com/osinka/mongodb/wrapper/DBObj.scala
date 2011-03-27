@@ -16,7 +16,6 @@
 
 package com.osinka.mongodb.wrapper
 
-import annotation.tailrec
 import com.mongodb.{DBObject, BasicDBObject}
 
 object DBO {
@@ -31,7 +30,6 @@ object DBO {
     def fromMap(m: Map[String,Any]): DBObject = {
         import com.mongodb.{BasicDBObjectBuilder, BasicDBList}
 
-        @tailrec
         def wrap(obj: Any): Option[Any] = obj match {
             case m: Map[_, _] =>
                 // to avoid type erasure warning

@@ -83,11 +83,9 @@ object serializerSpec extends Specification {
             CaseUser.out(jd) must beSome[CaseUser].which{_.name == Const}
         }
         "not include _id and _ns into DBO" in {
-            val shape = CaseUser.constraints
-            shape must haveSuperClass[QueryTerm[CaseUser]]
-            shape.m.get("name") must beSome[Any].which{_ == Map("$exists" -> true)}
-            shape.m.get("_id") must beNone
-            shape.m.get("_ns") must beNone
+            val shape = CaseUser.fields.fields
+            shape must contain("name")
+            shape mustNot contain("_id")
         }
         "mirror mongo fields back to object" in {
             import org.bson.types.ObjectId
@@ -137,11 +135,6 @@ object serializerSpec extends Specification {
         }
     }
     "Optional field" should {
-        "have empty constraints" in {
-            OptModel.description.mongoConstraints.m must beEmpty
-            OptModel.description3.mongoConstraints.m must beEmpty
-            OptModel.comment.mongoConstraints.m must beEmpty
-        }
         "serialize to DBObject" in {
             val some = new OptModel(1, Some(Const))
             val none = new OptModel(1, None)

@@ -24,9 +24,8 @@ case class CaseUser(val name: String) extends MongoObject {
     override def toString = "CaseUser(name="+name+",oid="+mongoOID+")"
 }
 
-trait CaseUserIn[T] extends ObjectIn[CaseUser, T] with FactoryPf[CaseUser] {
+trait CaseUserIn[T] extends ObjectIn[CaseUser, T] {
     object name extends ScalarField[String]("name", _.name, None)
-    override lazy val * = name :: Nil
 
     override val factory: FactoryPF = {
       case name(n) => CaseUser(n)
@@ -41,13 +40,11 @@ class OrdUser extends MongoObject {
     override def toString = "OrdUser(name="+name+",oid="+mongoOID+")"
 }
 object OrdUser extends MongoObjectShape[OrdUser] {
-    override def factory(dbo: DBObject) = Some(new OrdUser)
+    override val factory: FactoryPF = { case dbo => new OrdUser }
 
     lazy val name = Field.scalar("name",
            (u: OrdUser) => u.name,
            (u: OrdUser, n: String) => u.name = n)
-
-    override lazy val * = name :: Nil
 }
 
 // object holder for serializer tests
@@ -56,6 +53,5 @@ case class Holder[T](var value: T)
 class TSerializer[T](val f: () => Holder[T]) extends ObjectShape[Holder[T]] with FunctionalShape[Holder[T]] {
     lazy val i = Field.scalar("i", (x: Holder[T]) => x.value, (x: Holder[T], v: T) => x.value = v)
 
-    override lazy val * = List(i)
-    override def factory(dbo: DBObject): Option[Holder[T]] = Some(f())
+    override val factory: FactoryPF = { case dbo => f() }
 }

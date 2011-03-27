@@ -26,24 +26,20 @@ import wrapper.DBO
  * is most generic and used to declare embedded fields mostly.
  */
 trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType] {
-    /**
-     * Every Shape must provide the list of the fields in the documents of this shape.
-     */
-    def * : List[MongoField[_]]
+    type FactoryPF = PartialFunction[DBObject, T]
 
     /**
-     * Every Shape must provide the factory to create object T
-     * @param dbo the document in MongoDB
-     * @return None if it's impossible to retrieve object T from dbo
+     * Every Shape must provide the factory to create object T or subtype.
+     * PartialFunction[DBObject,T]
      */
-    def factory(dbo: DBObject): Option[T]
-
-    protected def fieldList: List[MongoField[_]] = *
+    def factory: FactoryPF
 
     /**
-     * Document constraint
+     * The list of fields to store based on object
      */
-    lazy val constraints = fieldList filterNot {_.mongoInternal_?} map {_.mongoConstraints} reduceLeft {_ and _}
+    def storeFields(x: T): List[MongoField[_]] = fields.fields
+
+    implicit val fields = FieldAccumulator()
 
     private[shape] def packFields(x: T, fields: Seq[MongoField[_]]): DBObject =
         DBO.fromMap( (fields foldLeft Map[String,Any]() ) { (m,f) =>
@@ -58,15 +54,15 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
     }
 
     // -- Serializer[T]
-    override def in(x: T): DBObject = packFields(x, fieldList)
+    override def in(x: T): DBObject = packFields(x, storeFields(x))
 
-    override def out(dbo: DBObject) = factory(dbo) map { x =>
-        updateFields(x, dbo, fieldList)
+    override def out(dbo: DBObject) = factory.lift(dbo) map { x =>
+        updateFields(x, dbo, storeFields(x))
         x
     }
 
     override def mirror(x: T)(dbo: DBObject) = {
-        updateFields(x, dbo, fieldList filter { _.mongoInternal_? })
+        updateFields(x, dbo, storeFields(x))
         x
     }
 }
@@ -101,21 +97,6 @@ trait FunctionalShape[T] { self: ObjectShape[T] =>
 }
 
 /**
- * Mix-in to define factory through PartialFunction
- */
-trait FactoryPf[T] { self: ObjectIn[T,_] =>
-    type FactoryPF = PartialFunction[DBObject, T]
-
-    object ~ {
-       def unapply[A](a: A): Option[(A,A)] = Some((a, a))
-    }
-
-    def factory: FactoryPF
-
-    override def factory(dbo: DBObject): Option[T] = factory.lift(dbo)
-}
-
-/**
  * Shape of MongoObject child.
  *
  * It has mandatory _id and _ns fields
@@ -127,7 +108,4 @@ trait MongoObjectShape[T <: MongoObject] extends ObjectShape[T] {
      * MongoDB internal Object ID field declaration
      */
     lazy val oid = Field.optional("_id", (x: T) => x.mongoOID, (x: T, oid: Option[ObjectId]) => x.mongoOID = oid)
-
-    // -- ObjectShape[T]
-    override def fieldList : List[MongoField[_]] = oid :: super.fieldList
 }

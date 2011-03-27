@@ -21,9 +21,8 @@ import com.osinka.mongodb._
 
 class RefModel(val message: String, val user: CaseUser)
 
-class RefModelShape(val db: DB, val usersCollName: String) extends ObjectShape[RefModel] with FactoryPf[RefModel] { shape =>
+class RefModelShape(val db: DB, val usersCollName: String) extends ObjectShape[RefModel] { shape =>
     lazy val message = Field.scalar("message", _.message)
-
     lazy val user = Field.ref("user", CaseUser collection db.getCollection(usersCollName), _.user)
 //
 // same as
@@ -34,7 +33,6 @@ class RefModelShape(val db: DB, val usersCollName: String) extends ObjectShape[R
 //        override val rep = shape.Represented.by(_.user, None)
 //    }
 
-    lazy val * = List(message, user)
     override def factory: FactoryPF = {
         case message(m) ~ user(u) => new RefModel(m,u)
     }
