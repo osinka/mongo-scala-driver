@@ -44,10 +44,6 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
     protected def find(q: Query): Iterator[T] =
         new DBObjectIterator(cursor(q)).flatMap{serializer.out(_).toList.iterator}
 
-    protected def findOne(q: Query): Option[T] =
-        if (q.slice_?) find(q take 1).toSeq.headOption
-        else Option(findOne(q.query)).flatMap{serializer.out}
-
     protected def getCount(q: Query): Long = {
         def lim(n: Int) = q.limit map{_ min n} getOrElse n
         def skp(n: Int) = q.skip map{x => (n - x) max 0} getOrElse n
@@ -187,7 +183,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
     def findAndModify(q: Query, op: Map[String,Any], remove: Boolean, returnNew: Boolean, upsert: Boolean): Option[T] =
       findAndModify(q.query, q.sorting, DBO.fromMap(op), remove, returnNew, upsert)
 
-    def get(oid: ObjectId): Option[T] = findOne(Query byId oid)
+    def get(oid: ObjectId): Option[T] = find(Query byId oid).toIterable.headOption
 
     // -- PartialFunction[ObjectId, T]
     override def isDefinedAt(oid: ObjectId) = getCount(Query byId oid) > 0
@@ -197,7 +193,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
     // -- Collection[T]
     override def iterator: Iterator[T] = find
 
-    override def headOption = findOne(Query.empty)
+    override def headOption = find(Query.empty).toIterable.headOption
 
     /**
      * Size of the collection. <strong>Note</strong>: Original MongoDB cursor

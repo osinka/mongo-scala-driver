@@ -41,6 +41,7 @@ object serializerSpec extends Specification {
             h.value must be_==(1)
         }
         "serialize Ints" in {
+            IntS.allFields must haveSize(1)
             BasicDBObjectBuilder.start("i", 1).get must beLike {
                 case IntS(o) => o.value == 1
             }
@@ -74,6 +75,11 @@ object serializerSpec extends Specification {
     "Case class Shape" should {
          val jd = DBO.fromMap( Map("name" -> Const) )
 
+        "fields" in {
+            CaseUser.name.mongoFieldName must be_==("name")
+            CaseUser.allFields must haveSize(2)
+            CaseUser.allFields must contain(CaseUser.name)
+        }
         "serialize to DBObject" in {
             val dbo = CaseUser in new CaseUser(Const)
             dbo must notBeNull
@@ -81,11 +87,6 @@ object serializerSpec extends Specification {
         }
         "serialize from DBObject" in {
             CaseUser.out(jd) must beSome[CaseUser].which{_.name == Const}
-        }
-        "not include _id and _ns into DBO" in {
-            val shape = CaseUser.fields.fields
-            shape must contain("name")
-            shape mustNot contain("_id")
         }
         "mirror mongo fields back to object" in {
             import org.bson.types.ObjectId

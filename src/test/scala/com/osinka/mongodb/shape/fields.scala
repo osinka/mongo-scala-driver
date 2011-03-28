@@ -32,8 +32,8 @@ object fieldsSpec extends Specification("Shape fields") {
 
     "Case Class" should {
         "declare fields" in {
-            CaseUser.fields.fields must haveSize(2)
-            CaseUser.fields.fields filter {_.mongoFieldName == CaseUser.name} must haveSize(1)
+            CaseUser.allFields must haveSize(2)
+            CaseUser.allFields filter {_ == CaseUser.name} must haveSize(1)
             true must beTrue
         }
         "have proper parentFields" in {
@@ -43,16 +43,16 @@ object fieldsSpec extends Specification("Shape fields") {
     }
     "Class Shape" should {
         "declare fields" in {
-            OrdUser.fields.fields must haveSize(2)
-            OrdUser.fields.fields filter { _.mongoFieldName == OrdUser.name} must haveSize(1)
+            OrdUser.allFields must haveSize(2)
+            OrdUser.allFields filter { _ == OrdUser.name} must haveSize(1)
             true must beTrue
         }
     }
     "Complex Shape" should {
         "declare fields" in {
             ComplexType.user must notBeNull
-            ComplexType.fields.fields must haveSize(3)
-            ComplexType.fields.fields filter {_.mongoFieldName == ComplexType.user} must haveSize(1)
+            ComplexType.allFields must haveSize(3)
+            ComplexType.allFields filter {_ == ComplexType.user} must haveSize(1)
             true must beTrue
         }
         "have proper parentFields" in {
@@ -63,7 +63,7 @@ object fieldsSpec extends Specification("Shape fields") {
         "have constraint" in {
             ComplexType.user.mongoFieldName must be_==("user")
             ComplexType.user.containerPath must haveTheSameElementsAs(List("user"))
-            ComplexType.fields.fields must haveSize(1)
+            ComplexType.allFields must haveSize(3)
         }
         "have proper shape for embedded object" in {
             val nameField = ComplexType.user.name
@@ -75,21 +75,21 @@ object fieldsSpec extends Specification("Shape fields") {
         "have constraint" in {
             RefModel.user.mongoFieldName must be_==("user")
             RefModel.user.mongoFieldPath must haveTheSameElementsAs(List("user"))
-            RefModel.fields.fields filter {_.mongoFieldName == "user"} must haveSize(1)
+            RefModel.allFields filter {_.mongoFieldName == "user"} must haveSize(1)
         }
     }
     "ArrayOfInt field" should {
         import ArrayOfInt._
         "have constraint" in {
             ArrayModel.messages.mongoFieldName must be_==("messages")
-            ArrayModel.fields.fields filter {_.mongoFieldName == "messages"} must haveSize(1)
+            ArrayModel.allFields filter {_.mongoFieldName == "messages"} must haveSize(1)
         }
     }
     "MapOfScalar field" should {
         import MapOfScalar._
         "have constraint" in {
             MapModel.counts.mongoFieldName must be_==("counts")
-            MapModel.fields.fields must have size(2)
+            MapModel.allFields must have size(2)
         }
     }
     "Field equality" should {

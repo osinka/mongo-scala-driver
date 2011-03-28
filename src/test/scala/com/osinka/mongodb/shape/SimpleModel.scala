@@ -25,7 +25,7 @@ case class CaseUser(val name: String) extends MongoObject {
 }
 
 trait CaseUserIn[T] extends ObjectIn[CaseUser, T] {
-    object name extends ScalarField[String]("name", _.name, None)
+    val name = new ScalarField[String]("name", _.name, None)
 
     override val factory: FactoryPF = {
       case name(n) => CaseUser(n)
@@ -42,9 +42,7 @@ class OrdUser extends MongoObject {
 object OrdUser extends MongoObjectShape[OrdUser] {
     override val factory: FactoryPF = { case dbo => new OrdUser }
 
-    lazy val name = Field.scalar("name",
-           (u: OrdUser) => u.name,
-           (u: OrdUser, n: String) => u.name = n)
+    lazy val name = Field.scalar("name", (u: OrdUser) => u.name, (u: OrdUser, n: String) => u.name = n)
 }
 
 // object holder for serializer tests

@@ -53,10 +53,12 @@ object MapOfEmbedded {
              *
              * if you do not need such queries, there is no need in "apply" here
              */
-            def apply(key: String) = new shape.EmbeddedField[CaseUser](key, _.users(key), None)(mapFields) with CaseUserIn[MapModel] {
+            def apply(key: String) = new shape.EmbeddedField[CaseUser](key, _.users(key), None) with CaseUserIn[MapModel] {
                 override def mongoFieldPath = field.mongoFieldPath ::: super.mongoFieldPath
             }
         }
+
+        override def objectFields(obj: MapModel) = List(id, users)
 
         override def factory: FactoryPF = {
           case id(id) ~ users(users) => new MapModel(id, users)

@@ -16,7 +16,6 @@
 
 package com.osinka.mongodb.shape
 
-import scala.reflect.Manifest
 import com.mongodb.{DBObject, DBCollection}
 import com.osinka.mongodb._
 import wrapper.DBO
@@ -35,11 +34,9 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
     def factory: FactoryPF
 
     /**
-     * The list of fields to store based on object
+     * Override this if you want to control which fields are stored per-object.
      */
-    def storeFields(x: T): List[MongoField[_]] = fields.fields
-
-    implicit val fields = FieldAccumulator()
+    def objectFields(x: T): List[MongoField[_]] = allFields
 
     private[shape] def packFields(x: T, fields: Seq[MongoField[_]]): DBObject =
         DBO.fromMap( (fields foldLeft Map[String,Any]() ) { (m,f) =>
@@ -50,19 +47,20 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
         } )
 
     private[shape] def updateFields(x: T, dbo: DBObject, fields: Seq[MongoField[_]]) {
+//      System.err.println(this+" updating fields "+fields+" in "+x)
         fields foreach { f => f.mongoWriteTo(x, Option(dbo get f.mongoFieldName)) }
     }
 
     // -- Serializer[T]
-    override def in(x: T): DBObject = packFields(x, storeFields(x))
+    override def in(x: T): DBObject = packFields(x, objectFields(x))
 
     override def out(dbo: DBObject) = factory.lift(dbo) map { x =>
-        updateFields(x, dbo, storeFields(x))
+        updateFields(x, dbo, objectFields(x))
         x
     }
 
     override def mirror(x: T)(dbo: DBObject) = {
-        updateFields(x, dbo, storeFields(x))
+        updateFields(x, dbo, objectFields(x))
         x
     }
 }

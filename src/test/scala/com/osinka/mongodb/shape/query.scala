@@ -233,8 +233,8 @@ object querySpec extends Specification("Query on Shapes and Fields") {
             dbColl.getCount must be_==(N*2)
         }
         "getCount by shape" in {
-            dbColl of CaseUser must haveSize(N)
-            dbColl of ComplexType must haveSize(N)
+            CaseUser where CaseUser.allFields.map{_.exists}.reduceLeft{_ and _} in (dbColl of CaseUser) must haveSize(N)
+            ComplexType where ComplexType.allFields.map{_.exists}.reduceLeft{_ and _} in (dbColl of ComplexType) must haveSize(N)
         }
         "findOne by shape" in {
             dbColl.of(CaseUser).headOption must beSome[CaseUser].which{_ == CaseUser("User0")}

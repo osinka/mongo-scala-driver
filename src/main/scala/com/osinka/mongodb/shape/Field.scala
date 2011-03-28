@@ -59,25 +59,21 @@ trait FieldContainer {
  */
 trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions[T, QueryType] with FieldModifyOperations[T, QueryType] { parent =>
 
-    trait FieldAccumulator {
-      def fields: List[MongoField[_]]
-      def append(f: MongoField[_]): Unit
-    }
+    lazy val allFields: List[MongoField[_]] = {
+      import java.lang.reflect.{Modifier,Method}
+      
+      def isMongoField(m: Method) =
+        Modifier.isPublic(m.getModifiers) &&
+        classOf[MongoField[_]].isAssignableFrom(m.getReturnType) &&
+        m.getParameterTypes.isEmpty
 
-    object FieldAccumulator {
-      def apply(): FieldAccumulator = new FieldAccumulator {
-        import collection.mutable.ListBuffer
-        val buffer = ListBuffer.empty[MongoField[_]]
-        override def fields = buffer.toList
-        override def append(f: MongoField[_]) {
-          assert(!buffer.contains(f), "Cannot have two fields with the same name")
-          if (!f.mongoInternal_?) buffer append f
-        }
-      }
-      def throwingAway: FieldAccumulator = new FieldAccumulator {
-        override def fields = Nil
-        override def append(f: MongoField[_]) {}
-      }
+      /**
+       * FIXME: Do not use "object fieldName" to declare fields
+       * 
+       * https://lampsvn.epfl.ch/trac/scala/ticket/4023
+       * According to Scala Trac not all inner objects can be discovered.
+       */
+      getClass.getMethods.toList filter{isMongoField _} map {_.invoke(this).asInstanceOf[MongoField[_]]}
     }
 
     /**
@@ -93,11 +89,6 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @see ObjectShape
      */
     trait MongoField[A] extends ObjectField with FieldConditions[A] with BaseFieldModifyOp { storage: FieldContent[A] =>
-        /**
-         * @return true if the field is internal MongoDB's field
-         */
-        def mongoInternal_? : Boolean = mongoFieldName startsWith "_"
-
         private[shape] def mongoReadFrom(x: T): Option[Any]
         private[shape] def mongoWriteTo(x: T, v: Option[Any])
 
@@ -366,12 +357,10 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param g field getter
      * @param p optional field setter
      */
-    class ScalarField[A](override val mongoFieldName: String, val g: T => A, val p: Option[(T,A) => Unit])(implicit fAcc: FieldAccumulator)
+    class ScalarField[A](override val mongoFieldName: String, val g: T => A, val p: Option[(T,A) => Unit])
             extends MongoScalar[A] with ScalarContent[A] with ScalarFieldModifyOp[A] {
         override val rep = Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[ScalarField[_]]
-
-        fAcc append this
     }
 
     /*
@@ -380,12 +369,10 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param g field getter
      * @param p optional field setter
      */
-    class OptionalField[A](override val mongoFieldName: String, val g: T => Option[A], val p: Option[(T,Option[A]) => Unit])(implicit fAcc: FieldAccumulator)
+    class OptionalField[A](override val mongoFieldName: String, val g: T => Option[A], val p: Option[(T,Option[A]) => Unit])
             extends MongoScalar[A] with ScalarContent[A] with ScalarFieldModifyOp[A] {
         override val rep = Represented.byOption(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[OptionalField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -396,14 +383,11 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param g field getter
      * @param p optional field setter
      */
-    class EmbeddedField[V](override val mongoFieldName: String, val g: T => V, val p: Option[(T,V) => Unit])(implicit fAcc: FieldAccumulator)
-            extends MongoScalar[V] with EmbeddedContent[V] with FieldModifyOp[V] {
-        self: MongoField[V] with ObjectIn[V, QueryType] =>
+    abstract class EmbeddedField[V](override val mongoFieldName: String, val g: T => V, val p: Option[(T,V) => Unit])
+            extends MongoScalar[V] with EmbeddedContent[V] with FieldModifyOp[V] with ObjectIn[V, QueryType] {
         
         override val rep = parent.Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[EmbeddedField[_]]
-
-        fAcc.append(this)
     }
 
     /**
@@ -414,13 +398,11 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param p optional field setter
      */
     class RefField[V <: MongoObject](override val mongoFieldName: String, override val coll: MongoCollection[V],
-                                     val g: T => V, val p: Option[(T,V) => Unit])(implicit fAcc: FieldAccumulator)
+                                     val g: T => V, val p: Option[(T,V) => Unit])
             extends MongoScalar[V] with RefContent[V] {
 
         override val rep = parent.Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[RefField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -431,13 +413,11 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param p optional field setter
      */
     class OptionalRefField[V <: MongoObject](override val mongoFieldName: String, override val coll: MongoCollection[V],
-                                             val g: T => Option[V], val p: Option[(T,Option[V]) => Unit])(implicit fAcc: FieldAccumulator)
+                                             val g: T => Option[V], val p: Option[(T,Option[V]) => Unit])
             extends MongoScalar[V] with RefContent[V] {
 
         override val rep = parent.Represented.byOption(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[OptionalRefField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -446,13 +426,11 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param g field getter
      * @param p optional field setter
      */
-    class ArrayField[A](override val mongoFieldName: String, val g: T => Seq[A], val p: Option[(T,Seq[A]) => Unit])(implicit fAcc: FieldAccumulator)
+    class ArrayField[A](override val mongoFieldName: String, val g: T => Seq[A], val p: Option[(T,Seq[A]) => Unit])
             extends MongoArray[A] with ScalarContent[A] with ArrayFieldModifyOp[A] {
 
         override val rep = Represented.by[Seq[A]](g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[ArrayField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -461,14 +439,11 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param g field getter
      * @param p optional field setter
      */
-    class ArrayEmbeddedField[V](override val mongoFieldName: String, val g: T => Seq[V], val p: Option[(T,Seq[V]) => Unit])(implicit fAcc: FieldAccumulator)
-            extends MongoArray[V] with EmbeddedContent[V] with ArrayFieldModifyOp[V] {
-        self: MongoField[V] with ObjectIn[V, QueryType] =>
+    abstract class ArrayEmbeddedField[V](override val mongoFieldName: String, val g: T => Seq[V], val p: Option[(T,Seq[V]) => Unit])
+            extends MongoArray[V] with EmbeddedContent[V] with ArrayFieldModifyOp[V] with ObjectIn[V, QueryType] {
 
         override val rep = parent.Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[ArrayEmbeddedField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -479,13 +454,11 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param p optional field setter
      */
     class ArrayRefField[V <: MongoObject](override val mongoFieldName: String, override val coll: MongoCollection[V],
-                                          val g: T => Seq[V], val p: Option[(T,Seq[V]) => Unit])(implicit fAcc: FieldAccumulator)
+                                          val g: T => Seq[V], val p: Option[(T,Seq[V]) => Unit])
             extends MongoArray[V] with RefContent[V] {
 
         override val rep = parent.Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[ArrayRefField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -495,19 +468,15 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param p optional field setter
      */
     class MapField[A](override val mongoFieldName: String,
-                      val g: T => Map[String,A], val p: Option[(T,Map[String,A]) => Unit])(implicit fAcc: FieldAccumulator)
+                      val g: T => Map[String,A], val p: Option[(T,Map[String,A]) => Unit])
             extends MongoMap[A] with ScalarContent[A] { field =>
 
-        implicit val mapFields = parent.FieldAccumulator.throwingAway
-
-        def apply(key: String) = new ScalarField[A](key, (x: T) => g(x)(key), None)(mapFields) {
+        def apply(key: String) = new ScalarField[A](key, (x: T) => g(x)(key), None) {
             override def mongoFieldPath = field.mongoFieldPath ::: super.mongoFieldPath
         }
 
         override val rep = Represented.by[Map[String,A]](g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[MapField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -516,17 +485,12 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param g field getter
      * @param p optional field setter
      */
-    class MapEmbeddedField[V](override val mongoFieldName: String,
-                              val g: T => Map[String,V], val p: Option[(T,Map[String,V]) => Unit])(implicit fAcc: FieldAccumulator)
-            extends MongoMap[V] with EmbeddedContent[V] {
-        self: MongoField[V] with ObjectIn[V, QueryType] =>
-
-        implicit val mapFields = parent.FieldAccumulator.throwingAway
+    abstract class MapEmbeddedField[V](override val mongoFieldName: String,
+                              val g: T => Map[String,V], val p: Option[(T,Map[String,V]) => Unit])
+            extends MongoMap[V] with EmbeddedContent[V] with ObjectIn[V, QueryType] {
 
         override val rep = parent.Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[MapEmbeddedField[_]]
-
-        fAcc append this
     }
 
     /**
@@ -537,65 +501,63 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
      * @param p optional field setter
      */
     class MapRefField[V <: MongoObject](override val mongoFieldName: String, override val coll: MongoCollection[V],
-                                        val g: T => Map[String,V], val p: Option[(T,Map[String,V]) => Unit])(implicit fAcc: FieldAccumulator)
+                                        val g: T => Map[String,V], val p: Option[(T,Map[String,V]) => Unit])
             extends MongoMap[V] with RefContent[V] {
 
         override val rep = parent.Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[MapRefField[_]]
-
-        fAcc append this
     }
 
     /**
      * Factory methods to build pre-cooked field declarations
      */
     object Field {
-        def scalar[A](fieldName: String, getter: T => A)(implicit fAcc: FieldAccumulator) =
-            new ScalarField[A](fieldName, getter, None)(fAcc)
+        def scalar[A](fieldName: String, getter: T => A) =
+            new ScalarField[A](fieldName, getter, None)
 
-        def scalar[A](fieldName: String, getter: T => A, setter: (T, A) => Unit)(implicit fAcc: FieldAccumulator) =
-            new ScalarField[A](fieldName, getter, Some(setter))(fAcc)
+        def scalar[A](fieldName: String, getter: T => A, setter: (T, A) => Unit) =
+            new ScalarField[A](fieldName, getter, Some(setter))
 
-        def optional[A](fieldName: String, getter: T => Option[A])(implicit fAcc: FieldAccumulator) =
-            new OptionalField[A](fieldName, getter, None)(fAcc)
+        def optional[A](fieldName: String, getter: T => Option[A]) =
+            new OptionalField[A](fieldName, getter, None)
 
-        def optional[A](fieldName: String, getter: T => Option[A], setter: (T, Option[A]) => Unit)(implicit fAcc: FieldAccumulator) =
-            new OptionalField[A](fieldName, getter, Some(setter))(fAcc)
+        def optional[A](fieldName: String, getter: T => Option[A], setter: (T, Option[A]) => Unit) =
+            new OptionalField[A](fieldName, getter, Some(setter))
 
-        def ref[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => V)(implicit fAcc: FieldAccumulator) =
-            new RefField[V](fieldName, coll, getter, None)(fAcc)
+        def ref[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => V) =
+            new RefField[V](fieldName, coll, getter, None)
 
-        def ref[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => V, setter: (T, V) => Unit)(implicit fAcc: FieldAccumulator) =
-            new RefField[V](fieldName, coll, getter, Some(setter))(fAcc)
+        def ref[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => V, setter: (T, V) => Unit) =
+            new RefField[V](fieldName, coll, getter, Some(setter))
 
-        def optionalRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Option[V])(implicit fAcc: FieldAccumulator) =
-            new OptionalRefField[V](fieldName, coll, getter, None)(fAcc)
+        def optionalRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Option[V]) =
+            new OptionalRefField[V](fieldName, coll, getter, None)
         
-        def optionalRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Option[V], setter: (T, Option[V]) => Unit)(implicit fAcc: FieldAccumulator) =
-            new OptionalRefField[V](fieldName, coll, getter, Some(setter))(fAcc)
+        def optionalRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Option[V], setter: (T, Option[V]) => Unit) =
+            new OptionalRefField[V](fieldName, coll, getter, Some(setter))
 
-        def array[A](fieldName: String, getter: T => Seq[A])(implicit fAcc: FieldAccumulator) =
-            new ArrayField[A](fieldName, getter, None)(fAcc)
+        def array[A](fieldName: String, getter: T => Seq[A]) =
+            new ArrayField[A](fieldName, getter, None)
 
-        def array[A](fieldName: String, getter: T => Seq[A], setter: (T, Seq[A]) => Unit)(implicit fAcc: FieldAccumulator) =
-            new ArrayField[A](fieldName, getter, Some(setter))(fAcc)
+        def array[A](fieldName: String, getter: T => Seq[A], setter: (T, Seq[A]) => Unit) =
+            new ArrayField[A](fieldName, getter, Some(setter))
 
-        def arrayRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Seq[V])(implicit fAcc: FieldAccumulator) =
-            new ArrayRefField[V](fieldName, coll, getter, None)(fAcc)
+        def arrayRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Seq[V]) =
+            new ArrayRefField[V](fieldName, coll, getter, None)
 
-        def arrayRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Seq[V], setter: (T, Seq[V]) => Unit)(implicit fAcc: FieldAccumulator) =
-            new ArrayRefField[V](fieldName, coll, getter, Some(setter))(fAcc)
+        def arrayRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Seq[V], setter: (T, Seq[V]) => Unit) =
+            new ArrayRefField[V](fieldName, coll, getter, Some(setter))
 
-        def map[A](fieldName: String, getter: T => Map[String,A])(implicit fAcc: FieldAccumulator) =
-            new MapField[A](fieldName, getter, None)(fAcc)
+        def map[A](fieldName: String, getter: T => Map[String,A]) =
+            new MapField[A](fieldName, getter, None)
 
-        def map[A](fieldName: String, getter: T => Map[String,A], setter: (T, Map[String,A]) => Unit)(implicit fAcc: FieldAccumulator) =
-            new MapField[A](fieldName, getter, Some(setter))(fAcc)
+        def map[A](fieldName: String, getter: T => Map[String,A], setter: (T, Map[String,A]) => Unit) =
+            new MapField[A](fieldName, getter, Some(setter))
 
-        def mapRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Map[String,V])(implicit fAcc: FieldAccumulator) =
-            new MapRefField[V](fieldName, coll, getter, None)(fAcc)
+        def mapRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Map[String,V]) =
+            new MapRefField[V](fieldName, coll, getter, None)
 
-        def mapRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Map[String,V], setter: (T, Map[String,V]) => Unit)(implicit fAcc: FieldAccumulator) =
-            new MapRefField[V](fieldName, coll, getter, Some(setter))(fAcc)
+        def mapRef[V <: MongoObject](fieldName: String, coll: MongoCollection[V], getter: T => Map[String,V], setter: (T, Map[String,V]) => Unit) =
+            new MapRefField[V](fieldName, coll, getter, Some(setter))
     }
 }

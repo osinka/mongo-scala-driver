@@ -106,7 +106,7 @@ object updateSpec extends Specification("Update") {
         }
         "$unset" in {
             objs( ArrayModel.id is_== 0 ) = ArrayModel.messages.unset
-            (ArrayModel.id is_== 0 in objs).headOption must beNone
+            (ArrayModel.id is_== 0 in objs).headOption must beSome[ArrayModel].which{_.messages.isEmpty}
         }
         "$push" in {
             objs map {_.messages.size} reduceLeft {_ max _} must be_==(2)

@@ -144,6 +144,6 @@ trait QueriedCollection[T, This <: QueriedCollection[T, This]] extends MongoColl
 
     // -- MongoCollection[T]
     override def find = find(query)
-    override def headOption = findOne(query)
+    override def headOption = find(query).toIterable.headOption
     override def sizeEstimate = getCount(query)
 }
