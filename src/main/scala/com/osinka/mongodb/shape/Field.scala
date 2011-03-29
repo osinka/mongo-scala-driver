@@ -292,9 +292,9 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
         override def containerPath = mongoFieldPath
 
         // -- FieldContent[A]
-        override def serialize(a: V): Option[Any] = Some(objectShape.in(a))
+        override def serialize(a: V): Option[Any] = Some(objectShape.pack(a))
         override def deserialize(v: Any): Option[V] = v match {
-            case dbo: DBObject => objectShape.out(dbo)
+            case dbo: DBObject => objectShape.unpack(dbo)
             case _ => None
         }
 

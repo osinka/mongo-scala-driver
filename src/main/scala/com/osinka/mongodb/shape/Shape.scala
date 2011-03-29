@@ -24,7 +24,7 @@ import wrapper.DBO
  * Shape of an object held in some other object (being it a Shape or Query). This trait
  * is most generic and used to declare embedded fields mostly.
  */
-trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType] {
+trait ObjectIn[T, QueryType] extends ShapeFields[T, QueryType] {
     type FactoryPF = PartialFunction[DBObject, T]
 
     /**
@@ -47,19 +47,12 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
         } )
 
     private[shape] def updateFields(x: T, dbo: DBObject, fields: Seq[MongoField[_]]) {
-//      System.err.println(this+" updating fields "+fields+" in "+x)
         fields foreach { f => f.mongoWriteTo(x, Option(dbo get f.mongoFieldName)) }
     }
 
-    // -- Serializer[T]
-    override def in(x: T): DBObject = packFields(x, objectFields(x))
+    def pack(x: T): DBObject = packFields(x, objectFields(x))
 
-    override def out(dbo: DBObject) = factory.lift(dbo) map { x =>
-        updateFields(x, dbo, objectFields(x))
-        x
-    }
-
-    override def mirror(x: T)(dbo: DBObject) = {
+    def unpack(dbo: DBObject) = factory.lift(dbo) map { x =>
         updateFields(x, dbo, objectFields(x))
         x
     }
@@ -68,30 +61,23 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
 /**
  * Shape of an object backed by DBObject ("hosted in")
  */
-trait ObjectShape[T] extends ObjectIn[T, T] with Queriable[T] {
+trait ObjectShape[T] extends Serializer[T] with ObjectIn[T, T] with Queriable[T] {
+    // -- Serializer[T]
+    def apply(x: T): DBObject = pack(x)
+
+    def unapply(dbo: DBObject): Option[T] = unpack(dbo)
+
+    override def mirror(x: T)(dbo: DBObject) = {
+        updateFields(x, dbo, objectFields(x))
+        x
+    }
+
     /**
      * Make a collection of T elements
      * @param underlying MongoDB collection
      * @return ShapedCollection based on this ObjectShape
      */
     def collection(underlying: DBCollection) = new ShapedCollection[T](underlying, this)
-}
-
-/**
- * Mix-in to make a shape functional
- *
- * FunctionalShape makes a shape with convinient syntactic sugar
- * for converting object to DBObject (apply) and extractor for the opposite
- *
- * E.g.
- * val dbo = UserShape(u)
- * dbo match {
- *    case UserShape(u) =>
- * }
- */
-trait FunctionalShape[T] { self: ObjectShape[T] =>
-    def apply(x: T): DBObject = in(x)
-    def unapply(rep: DBObject): Option[T] = out(rep)
 }
 
 /**

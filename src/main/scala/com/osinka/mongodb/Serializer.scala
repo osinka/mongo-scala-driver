@@ -32,7 +32,7 @@ trait Serializer[T] {
      * @param obj Scala object of type <code>T</code>
      * @return DBObject which holds object <code>obj</code>
      */
-    def in(obj: T): DBObject
+    def apply(obj: T): DBObject
 
     /**
      * convert a DBObject to domain object
@@ -40,7 +40,7 @@ trait Serializer[T] {
      * @param dbo DBObject
      * @return object read from <code>dbo</code>
      */
-    def out(dbo: DBObject): Option[T]
+    def unapply(dbo: DBObject): Option[T]
 
     /**
      * Modify object to save DBObject identity. DBObjects store identity about the

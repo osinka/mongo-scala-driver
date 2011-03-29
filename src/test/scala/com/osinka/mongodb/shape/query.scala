@@ -40,14 +40,14 @@ object querySpec extends Specification("Query on Shapes and Fields") {
             val scalaR = "^test$".r
             val javaR = Pattern.compile("^test$")
 
-            CaseUser.name eq_? Const must be_==( QueryTerm( Map("name" -> Const) ) )
-            CaseUser.name is_< Const must be_==( QueryTerm( Map("name" -> Map("$lt" -> Const))) )
-            CaseUser.name is_<= Const must be_==( QueryTerm( Map("name" -> Map("$lte" -> Const))) )
-            CaseUser.name is_> Const must be_==( QueryTerm( Map("name" -> Map("$gt" -> Const))) )
-            CaseUser.name is_>= Const must be_==( QueryTerm( Map("name" -> Map("$gte" -> Const))) )
-            CaseUser.name in List(Const) must be_==( QueryTerm( Map("name" -> Map("$in" -> List(Const)))) )
-            CaseUser.name.exists  must be_==( QueryTerm( Map("name" -> Map("$exists" -> true))) )
-            (CaseUser.name is_~ scalaR).m.get("name") must beLike {
+            CaseUserShape.name eq_? Const must be_==( QueryTerm( Map("name" -> Const) ) )
+            CaseUserShape.name is_< Const must be_==( QueryTerm( Map("name" -> Map("$lt" -> Const))) )
+            CaseUserShape.name is_<= Const must be_==( QueryTerm( Map("name" -> Map("$lte" -> Const))) )
+            CaseUserShape.name is_> Const must be_==( QueryTerm( Map("name" -> Map("$gt" -> Const))) )
+            CaseUserShape.name is_>= Const must be_==( QueryTerm( Map("name" -> Map("$gte" -> Const))) )
+            CaseUserShape.name in List(Const) must be_==( QueryTerm( Map("name" -> Map("$in" -> List(Const)))) )
+            CaseUserShape.name.exists  must be_==( QueryTerm( Map("name" -> Map("$exists" -> true))) )
+            (CaseUserShape.name is_~ scalaR).m.get("name") must beLike {
                 case Some(p: Pattern) => p.pattern == javaR.pattern
             }
         }
@@ -60,20 +60,20 @@ object querySpec extends Specification("Query on Shapes and Fields") {
     }
     "Shape query" should {
         "have DSL" in {
-            val qt = CaseUser.name is_== Const
+            val qt = CaseUserShape.name is_== Const
             qt must haveSuperClass[QueryTerm[CaseUser]]
             qt must be_==( QueryTerm[CaseUser]( Map("name" -> Const)) )
 
-            val q = CaseUser where {CaseUser.name is_< Const} drop 10 take 10 sortBy CaseUser.name.ascending
+            val q = CaseUserShape where {CaseUserShape.name is_< Const} drop 10 take 10 sortBy CaseUserShape.name.ascending
             q must haveSuperClass[ObjectShape[CaseUser]#ShapeQuery]
             q.query must be_==( Query(Map("name" -> Map("$lt" -> Const)), Some(10), Some(10), Some(Map("name" -> 1))) )
 
-            (CaseUser sortBy CaseUser.name.descending).query.sorting must beSome[DBObject].which{_.get("name") == -1}
+            (CaseUserShape sortBy CaseUserShape.name.descending).query.sorting must beSome[DBObject].which{_.get("name") == -1}
         }
         "produce right DBO for regex query" in {
             import java.util.regex.Pattern
-            val qt = CaseUser.name is_~ "^User3$".r
-            val dboRE = CaseUser.where(qt).query.query.get("name")
+            val qt = CaseUserShape.name is_~ "^User3$".r
+            val dboRE = CaseUserShape.where(qt).query.query.get("name")
             dboRE must (notBeNull and beLike {
                 case p: Pattern => p.pattern == "^User3$"
             })
@@ -81,7 +81,7 @@ object querySpec extends Specification("Query on Shapes and Fields") {
     }
     "Query" should {
         val dbColl = mongo.getCollection(CollName)
-        val coll = dbColl of CaseUser
+        val coll = dbColl of CaseUserShape
         val N = 50
 
         doBefore {
@@ -107,42 +107,42 @@ object querySpec extends Specification("Query on Shapes and Fields") {
             cmplxColl.iterator.toSeq must beEmpty
         }
         "do find" in {
-            val r = coll applied Query(Map(CaseUser.name.mongoFieldName -> "User2"))
+            val r = coll applied Query(Map(CaseUserShape.name.mongoFieldName -> "User2"))
             r must haveSize(1)
             r must contain( CaseUser("User2") )
         }
         "do headOption" in {
-            val r = coll applied Query(Map(CaseUser.name.mongoFieldName -> "User2"))
+            val r = coll applied Query(Map(CaseUserShape.name.mongoFieldName -> "User2"))
             r must haveSize(1)
             r.headOption must beSome[CaseUser].which{_.name == "User2"}
 
             (coll applied Query(Map("a" -> 1))).headOption must beNone
         }
         "apply ==" in {
-            val c = CaseUser where {CaseUser.name is "User3"} take 1 in coll
+            val c = CaseUserShape where {CaseUserShape.name is "User3"} take 1 in coll
             c must haveSize(1)
         }
         "apply <" in {
-            CaseUser where {CaseUser.name is_< "User3"} in coll must haveSize(23)
+            CaseUserShape where {CaseUserShape.name is_< "User3"} in coll must haveSize(23)
         }
         "apply ~" in {
             import java.util.regex.Pattern
             import Pattern._
 
-            CaseUser.name is_~ Pattern.compile("user3$", CASE_INSENSITIVE) in coll must haveSize(1)
-            CaseUser.name like "^User3$".r in coll must haveSize(1)
+            CaseUserShape.name is_~ Pattern.compile("user3$", CASE_INSENSITIVE) in coll must haveSize(1)
+            CaseUserShape.name like "^User3$".r in coll must haveSize(1)
         }
         "remove" in {
-            coll -= (CaseUser where {CaseUser.name is_~ "^User3.$".r} )
+            coll -= (CaseUserShape where {CaseUserShape.name is_~ "^User3.$".r} )
             coll must haveSize(N-10)
         }
         "sort ascending" in {
-            val c = CaseUser sortBy CaseUser.name.ascending take 1 in coll
+            val c = CaseUserShape sortBy CaseUserShape.name.ascending take 1 in coll
             c must haveSize(1)
             c.headOption must beSome[CaseUser].which{_.name == "User0"}
         }
         "sort descending" in {
-            val c = CaseUser sortBy CaseUser.name.descending take 1 in coll
+            val c = CaseUserShape sortBy CaseUserShape.name.descending take 1 in coll
             c must haveSize(1)
             c.headOption must beSome[CaseUser].which{_.name == "User9"}
         }
@@ -222,7 +222,7 @@ object querySpec extends Specification("Query on Shapes and Fields") {
 
         doFirst {
             dbColl.drop
-            Helper.fillWith (dbColl of CaseUser, N) {x => CaseUser("User"+x)}
+            Helper.fillWith (dbColl of CaseUserShape, N) {x => CaseUser("User"+x)}
             Helper.fillWith (dbColl of ComplexType, N) {x => new ComplexType(CaseUser("User"+x), x*10)}
         }
         doLast  {
@@ -233,22 +233,22 @@ object querySpec extends Specification("Query on Shapes and Fields") {
             dbColl.getCount must be_==(N*2)
         }
         "getCount by shape" in {
-            CaseUser where CaseUser.allFields.map{_.exists}.reduceLeft{_ and _} in (dbColl of CaseUser) must haveSize(N)
+            CaseUserShape where CaseUserShape.allFields.map{_.exists}.reduceLeft{_ and _} in (dbColl of CaseUserShape) must haveSize(N)
             ComplexType where ComplexType.allFields.map{_.exists}.reduceLeft{_ and _} in (dbColl of ComplexType) must haveSize(N)
         }
         "findOne by shape" in {
-            dbColl.of(CaseUser).headOption must beSome[CaseUser].which{_ == CaseUser("User0")}
+            dbColl.of(CaseUserShape).headOption must beSome[CaseUser].which{_ == CaseUser("User0")}
             dbColl.of(ComplexType).headOption must beSome[ComplexType].which{_.user == CaseUser("User0")}
         }
         "find by shape" in {
-            CaseUser where {CaseUser.name is_< "User3"} in dbColl.of(CaseUser) must haveSize(3)
+            CaseUserShape where {CaseUserShape.name is_< "User3"} in dbColl.of(CaseUserShape) must haveSize(3)
             ComplexType where {ComplexType.user.name is_< "User3"} in dbColl.of(ComplexType) must haveSize(3)
         }
     }
     "Query collection of ref" should {
         object RefModel extends RefModelShape(mongo, "users")
 
-        val users = mongo.getCollection("users") of CaseUser
+        val users = mongo.getCollection("users") of CaseUserShape
         val posts = mongo.getCollection("posts") of RefModel
 
         doBefore { users.drop; posts.drop }

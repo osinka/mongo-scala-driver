@@ -60,7 +60,7 @@ class DBObjectCollection(override val underlying: DBCollection)
  * DBObject through
  */
 object PlainDBOSerializer extends Serializer[DBObject] {
-    override def in(obj: DBObject) = obj
-    override def out(dbo: DBObject) = Some(dbo)
+    override def apply(obj: DBObject) = obj
+    override def unapply(dbo: DBObject) = Some(dbo)
     override def mirror(x: DBObject)(dbo: DBObject) = dbo
 }

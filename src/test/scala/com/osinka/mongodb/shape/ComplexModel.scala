@@ -23,7 +23,7 @@ class ComplexType(val user: CaseUser, val messageCount: Int) extends MongoObject
     override def toString = "ComplexType (" + user + ", " + messageCount + ")"
 }
 
-object ComplexType extends MongoObjectShape[ComplexType] with FunctionalShape[ComplexType] {
+object ComplexType extends MongoObjectShape[ComplexType] {
     val user = new EmbeddedField[CaseUser]("user", _.user, None) with CaseUserIn[ComplexType]
     val messageCount = new ScalarField[Int]("msgs", _.messageCount, None)
 

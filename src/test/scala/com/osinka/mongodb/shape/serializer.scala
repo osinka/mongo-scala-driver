@@ -76,17 +76,17 @@ object serializerSpec extends Specification {
          val jd = DBO.fromMap( Map("name" -> Const) )
 
         "fields" in {
-            CaseUser.name.mongoFieldName must be_==("name")
-            CaseUser.allFields must haveSize(2)
-            CaseUser.allFields must contain(CaseUser.name)
+            CaseUserShape.name.mongoFieldName must be_==("name")
+            CaseUserShape.allFields must haveSize(2)
+            CaseUserShape.allFields must contain(CaseUserShape.name)
         }
         "serialize to DBObject" in {
-            val dbo = CaseUser in new CaseUser(Const)
+            val dbo = CaseUserShape apply new CaseUser(Const)
             dbo must notBeNull
             dbo.get("name") must be_==(Const)
         }
         "serialize from DBObject" in {
-            CaseUser.out(jd) must beSome[CaseUser].which{_.name == Const}
+            CaseUserShape.unapply(jd) must beSome[CaseUser].which{_.name == Const}
         }
         "mirror mongo fields back to object" in {
             import org.bson.types.ObjectId
@@ -94,14 +94,14 @@ object serializerSpec extends Specification {
             val dbo = DBO.empty
             dbo.putAll(jd)
 
-            val u = CaseUser out dbo
+            val u = CaseUserShape unapply dbo
             u must beSome[CaseUser]
 
             val user = u.get
             u.get must verify { user => user.name == Const && user.mongoOID == None}
 
             dbo.put("_id", ObjectId.get)
-            CaseUser.mirror(user)(dbo)
+            CaseUserShape.mirror(user)(dbo)
             user.mongoOID must beSome[ObjectId].which{dbo.get("_id") ==}
         }
     }
@@ -109,16 +109,16 @@ object serializerSpec extends Specification {
         "serialize to DBObject" in {
             val u = new OrdUser
             u.name = Const
-            val dbo = OrdUser in u
+            val dbo = OrdUser apply u
             dbo.get("name") must be_==(Const)
         }
         "deserialize from DBObject" in {
-            OrdUser.out(jd) must beSome[OrdUser].which{_.name == Const}
+            OrdUser.unapply(jd) must beSome[OrdUser].which{_.name == Const}
         }
     }
     "Class with Embedded object Shape" should {
         "serialize  to DBObject" in {
-            val dbo = ComplexType in new ComplexType(CaseUser(Const), 1)
+            val dbo = ComplexType apply new ComplexType(CaseUser(Const), 1)
             dbo.get("user") must haveSuperClass[DBObject]
             dbo.get("user").asInstanceOf[DBObject].get("name") must be_==(Const)
             dbo.get("msgs") must haveClass[java.lang.Integer]
@@ -175,7 +175,7 @@ object serializerSpec extends Specification {
             (ComplexType.user set CaseUser("User0")).query.query must be_==(
                 DBO.fromMap(
                     Map("$set" -> Map(
-                            ComplexType.user.longFieldName -> Map(CaseUser.name.longFieldName -> "User0")
+                            ComplexType.user.longFieldName -> Map(CaseUserShape.name.longFieldName -> "User0")
                         ) )
                 )
             )

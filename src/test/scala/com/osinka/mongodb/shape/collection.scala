@@ -64,51 +64,51 @@ object collectionSpec extends Specification("Shape collection") {
 
         "retrieve" in {
             dbColl save Map("name" -> Const)
-            val coll = dbColl.of(CaseUser)
+            val coll = dbColl.of(CaseUserShape)
             coll must haveSuperClass[ShapedCollection[CaseUser]]
             coll.headOption must beSome[CaseUser].which{x => x.name == Const && x.mongoOID != None}
         }
         "store" in {
-            val coll = dbColl.of(CaseUser)
+            val coll = dbColl.of(CaseUserShape)
             coll += CaseUser(Const)
             coll.headOption must beSome[CaseUser].which{x => x.name == Const && x.mongoOID != None}
         }
         "insert many" in {
-            val coll = dbColl.of(CaseUser)
+            val coll = dbColl.of(CaseUserShape)
             ( coll << ((1 to 10) map {x => CaseUser(Const+x)}) ).getLastError.ok must beTrue
             coll must haveSize(10)
             coll foreach { _.mongoOID must beSome[ObjectId] }
         }
         "findAndRemove" in {
-            val coll = dbColl.of(CaseUser)
+            val coll = dbColl.of(CaseUserShape)
             coll << ((1 to 10) map {x => CaseUser(Const+x)})
             coll must haveSize(10)
-            coll.findAndRemove(CaseUser.name is_== "NoUser") must beNone
-            coll.findAndRemove(CaseUser.name is_~ "9$".r) must beSome[CaseUser].which{x =>
+            coll.findAndRemove(CaseUserShape.name is_== "NoUser") must beNone
+            coll.findAndRemove(CaseUserShape.name is_~ "9$".r) must beSome[CaseUser].which{x =>
               x.name == Const+"9"
             }
             coll must haveSize(9)
         }
         "findAndModify" in {
-            val coll = dbColl.of(CaseUser)
+            val coll = dbColl.of(CaseUserShape)
             coll << ((1 to 10) map {x => CaseUser(Const+x)})
             coll must haveSize(10)
-            coll.findAndModify(CaseUser.name is_~ "9$".r, CaseUser.name set "U9") must beSome[CaseUser].which{x =>
+            coll.findAndModify(CaseUserShape.name is_~ "9$".r, CaseUserShape.name set "U9") must beSome[CaseUser].which{x =>
               x.name == Const+"9"
             }
-            CaseUser where {CaseUser.name is_== Const+"9"} in coll must beEmpty
-            CaseUser where {CaseUser.name is_== "U9"} in coll must haveSize(1)
+            CaseUserShape where {CaseUserShape.name is_== Const+"9"} in coll must beEmpty
+            CaseUserShape where {CaseUserShape.name is_== "U9"} in coll must haveSize(1)
         }
         "findAndModify w/ sort" in {
-            val coll = dbColl.of(CaseUser)
+            val coll = dbColl.of(CaseUserShape)
             coll << ((1 to 10) map {x => CaseUser(Const+x)})
             coll must haveSize(10)
-            val r = coll.findAndModify(CaseUser sortBy CaseUser.name.descending, CaseUser.name set "U10")
+            val r = coll.findAndModify(CaseUserShape sortBy CaseUserShape.name.descending, CaseUserShape.name set "U10")
             r must beSome[CaseUser].which{x =>
               x.name == Const+"9"
             }
-            CaseUser where {CaseUser.name is_== Const+"9"} in coll must beEmpty
-            CaseUser where {CaseUser.name is_== "U10"} in coll must haveSize(1)
+            CaseUserShape where {CaseUserShape.name is_== Const+"9"} in coll must beEmpty
+            CaseUserShape where {CaseUserShape.name is_== "U10"} in coll must haveSize(1)
         }
     }
     "Collection of complex" should {
@@ -150,7 +150,7 @@ object collectionSpec extends Specification("Shape collection") {
     "Collection of ref" should {
         object RefModel extends RefModelShape(mongo, "users")
 
-        val users = mongo.getCollection("users") of CaseUser
+        val users = mongo.getCollection("users") of CaseUserShape
         val posts = mongo.getCollection("posts") of RefModel
 
         var user: CaseUser = CaseUser(Const)
@@ -240,7 +240,7 @@ object collectionSpec extends Specification("Shape collection") {
         object ArrayModel extends ArrayModelShape(mongo, "users")
 
         val objs = mongo.getCollection("objs") of ArrayModel
-        val users = mongo.getCollection("users") of CaseUser
+        val users = mongo.getCollection("users") of CaseUserShape
 
         doBefore { objs.drop; users.drop }
         doAfter  { objs.drop }

@@ -32,7 +32,7 @@ trait CaseUserIn[T] extends ObjectIn[CaseUser, T] {
     }
 }
 
-object CaseUser extends MongoObjectShape[CaseUser] with CaseUserIn[CaseUser]
+object CaseUserShape extends MongoObjectShape[CaseUser] with CaseUserIn[CaseUser]
 
 // ordinary class model with variable and updatable field
 class OrdUser extends MongoObject {
@@ -48,7 +48,7 @@ object OrdUser extends MongoObjectShape[OrdUser] {
 // object holder for serializer tests
 case class Holder[T](var value: T)
 
-class TSerializer[T](val f: () => Holder[T]) extends ObjectShape[Holder[T]] with FunctionalShape[Holder[T]] {
+class TSerializer[T](val f: () => Holder[T]) extends ObjectShape[Holder[T]] {
     lazy val i = Field.scalar("i", (x: Holder[T]) => x.value, (x: Holder[T], v: T) => x.value = v)
 
     override val factory: FactoryPF = { case dbo => f() }

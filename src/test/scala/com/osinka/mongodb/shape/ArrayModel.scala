@@ -73,7 +73,7 @@ object ArrayOfRef {
     class ArrayModelShape(val db: DB, val usersCollName: String) extends ObjectShape[ArrayModel] { shape =>
         lazy val id = Field.scalar("id", _.id)
 
-        lazy val users = Field.arrayRef("users", CaseUser collection db.getCollection(usersCollName), _.users, (x: ArrayModel, l: Seq[CaseUser]) => x.users = l.toList )
+        lazy val users = Field.arrayRef("users", CaseUserShape collection db.getCollection(usersCollName), _.users, (x: ArrayModel, l: Seq[CaseUser]) => x.users = l.toList )
 //
 //  same as
 //

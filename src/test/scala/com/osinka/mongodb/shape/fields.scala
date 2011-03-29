@@ -32,13 +32,13 @@ object fieldsSpec extends Specification("Shape fields") {
 
     "Case Class" should {
         "declare fields" in {
-            CaseUser.allFields must haveSize(2)
-            CaseUser.allFields filter {_ == CaseUser.name} must haveSize(1)
+            CaseUserShape.allFields must haveSize(2)
+            CaseUserShape.allFields filter {_ == CaseUserShape.name} must haveSize(1)
             true must beTrue
         }
         "have proper parentFields" in {
-            CaseUser.containerPath must beEmpty
-            CaseUser.name.mongoFieldPath must haveTheSameElementsAs("name" :: Nil)
+            CaseUserShape.containerPath must beEmpty
+            CaseUserShape.name.mongoFieldPath must haveTheSameElementsAs("name" :: Nil)
         }
     }
     "Class Shape" should {

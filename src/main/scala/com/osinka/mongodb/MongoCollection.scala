@@ -42,7 +42,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
     }
 
     protected def find(q: Query): Iterator[T] =
-        new DBObjectIterator(cursor(q)).flatMap{serializer.out(_).toList.iterator}
+        new DBObjectIterator(cursor(q)).flatMap{serializer.unapply(_).iterator}
 
     protected def getCount(q: Query): Long = {
         def lim(n: Int) = q.limit map{_ min n} getOrElse n
@@ -78,10 +78,10 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
         }
 
     protected def findAndRemove(q: DBObject): Option[T] =
-        Option(underlying.findAndRemove(q)) flatMap serializer.out
+        Option(underlying.findAndRemove(q)) flatMap serializer.unapply
 
     protected def findAndModify(q: DBObject, sorting: Option[DBObject], op: DBObject, remove: Boolean, returnNew: Boolean, upsert: Boolean): Option[T] =
-        Option(underlying.findAndModify(q, null, sorting.orNull, remove, op, returnNew, upsert)) flatMap serializer.out
+        Option(underlying.findAndModify(q, null, sorting.orNull, remove, op, returnNew, upsert)) flatMap serializer.unapply
 
     protected def remove(q: DBObject) {
         underlying remove q
@@ -108,7 +108,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
      * @return WriteResult
      */
     def <<(x: T) = {
-        val dbo = serializer.in(x)
+        val dbo = serializer(x)
         val result = underlying insert dbo
         serializer.mirror(x)(dbo)
         result
@@ -120,7 +120,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
      * @return WriteResult
      */
     def <<(xs: Seq[T]) = {
-        val dboList = xs map {serializer.in}
+        val dboList = xs map {serializer.apply}
         val result = underlying.insert(dboList.toArray, underlying.getWriteConcern)
         (xs zip dboList) map {Function.uncurried(serializer.mirror _).tupled}
         result
@@ -133,7 +133,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
      * <code>Some(x)</code> in the case of success.
      */
     def <<?(x: T): Option[T] = {
-        val dbo = serializer.in(x)
+        val dbo = serializer(x)
         related {
           underlying.insert(dbo).getLastError.ok match {
               case true => Some( serializer.mirror(x)(dbo) )
@@ -147,7 +147,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
      * @param x object to save to the collection
      */
     def +=(x: T) {
-        val dbo = serializer.in(x)
+        val dbo = serializer(x)
         underlying save dbo
         serializer.mirror(x)(dbo)
     }
@@ -156,7 +156,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
      * MongoDB DBCollection.remove method
      * @param x object to remove from the collection
      */
-    def -=(x: T) { underlying remove serializer.in(x) }
+    def -=(x: T) { underlying remove serializer(x) }
 
     /**
      * MongoDB DBCollection.remove method
