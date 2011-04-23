@@ -234,6 +234,13 @@ object collectionSpec extends Specification("Shape collection") {
                     }
             }
         }
+        "query sub-document" in {
+            val o = new ArrayModel(1, CaseUser(Const) :: Nil)
+            objs << o
+
+            ArrayModel where {(ArrayModel.id is_== 1) and
+                              ArrayModel.users.where(CaseUser.name is_== Const)} in objs must haveSize(1)
+        }            
     }
     "Collection of ArrayRef" should {
         import ArrayOfRef._

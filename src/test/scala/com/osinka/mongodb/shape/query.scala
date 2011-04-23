@@ -57,6 +57,11 @@ object querySpec extends Specification("Query on Shapes and Fields") {
             MapModel.users("a").exists must be_==( QueryTerm( Map("users.a" -> Map("$exists" -> true)) ) )
             MapModel.users("a").name is_== Const must be_==( QueryTerm( Map("users.a.name" -> Const) ) )
         }
+        "on array of embedded documents" in {
+            import ArrayOfEmbedded._
+
+            ArrayModel.users.where(CaseUser.name is_== Const) must be_==( QueryTerm( Map("users" -> Map("$elemMatch" -> Map("name" -> Const)) ) ))
+        }
     }
     "Shape query" should {
         "have DSL" in {

@@ -41,6 +41,7 @@ object MongoCondition {
     lazy val all = op[Any](ALL) _
 //    def mod
     lazy val size = op[Any](SIZE) _
+    lazy val elemMatch = op[Any]("$elemMatch") _
     def exists(field: String, b: Boolean) = op(EXISTS)(field, b)
 
     def regex(field: String, x: Regex): (String, Pattern) = regex(field, x.pattern)
