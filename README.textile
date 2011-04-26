@@ -11,7 +11,8 @@ h2. Important changes
 
 h3. Version 0.8.11
 
-* Mongo Java driver 2.5.2
+* Mongo Java driver 2.5.3
+* Support "@$elemMatch@ in ArrayEmbeddedField":https://github.com/alaz/mongo-scala-driver/issues/38
 
 Internal:
 
