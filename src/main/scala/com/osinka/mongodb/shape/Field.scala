@@ -444,6 +444,12 @@ trait ShapeFields[T, QueryType] extends FieldContainer with FieldQueryConditions
 
         override val rep = parent.Represented.by(g, p)
         override def canEqual(other: Any): Boolean = other.isInstanceOf[ArrayEmbeddedField[_]]
+
+        def where(q: QueryTerm[V]) = {
+          import wrapper.MongoCondition._
+
+          mkCond(elemMatch, Some(q.m))
+        }
     }
 
     /**
