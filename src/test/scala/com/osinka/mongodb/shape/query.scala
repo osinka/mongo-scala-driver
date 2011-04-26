@@ -60,7 +60,7 @@ object querySpec extends Specification("Query on Shapes and Fields") {
         "on array of embedded documents" in {
             import ArrayOfEmbedded._
 
-            ArrayModel.users.where(CaseUser.name is_== Const) must be_==( QueryTerm( Map("users" -> Map("$elemMatch" -> Map("name" -> Const)) ) ))
+            ArrayModel.users.where(CaseUserShape.name is_== Const) must be_==( QueryTerm( Map("users" -> Map("$elemMatch" -> Map("name" -> Const)) ) ))
         }
     }
     "Shape query" should {

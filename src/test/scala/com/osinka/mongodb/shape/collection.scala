@@ -239,7 +239,7 @@ object collectionSpec extends Specification("Shape collection") {
             objs << o
 
             ArrayModel where {(ArrayModel.id is_== 1) and
-                              ArrayModel.users.where(CaseUser.name is_== Const)} in objs must haveSize(1)
+                              ArrayModel.users.where(CaseUserShape.name is_== Const)} in objs must haveSize(1)
         }            
     }
     "Collection of ArrayRef" should {
