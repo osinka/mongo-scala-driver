@@ -165,6 +165,13 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
     def -=(q: Query) { remove(q.query) }
 
     /**
+     * MongoDB DBCollection update method
+     * @param q filter, which object to update
+     * @param x new object
+     */
+    def update(q: Query, x: T): Boolean = update(q.query, serializer.in(x), false)
+
+    /**
      * MongoDB DBCollection.update method
      * @param q filter, which objects to update
      * @param op set of modify operations in the form of Scala Map
