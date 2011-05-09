@@ -31,6 +31,11 @@ class ShapedCollection[T](override val underlying: DBCollection, val shape: Obje
     private def embedShapeConstraints(q: DBObject) = DBO.merge(shapeConstraints, q)
 
     /**
+     * Save new document based on query
+     */
+    def update(filters: QueryTerm[T], x: T): Boolean = update(filters.query, x)
+
+    /**
      * Update elements
      * @param multi should update all elements
      */
