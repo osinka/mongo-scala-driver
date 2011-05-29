@@ -169,7 +169,7 @@ trait MongoCollection[T] extends PartialFunction[ObjectId, T] with Iterable[T] w
      * @param q filter, which object to update
      * @param x new object
      */
-    def update(q: Query, x: T): Boolean = update(q.query, serializer.in(x), false)
+    def update(q: Query, x: T): Boolean = update(q.query, serializer(x), false)
 
     /**
      * MongoDB DBCollection.update method
