@@ -24,7 +24,7 @@
             <id>alaz</id>
             <email>azarov@osinka.com</email>
             <name>Alexander Azarov</name>
-            <timezone>+3</timezone>
+            <timezone>+4</timezone>
         </developer>
     </developers>
 
@@ -88,7 +88,7 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongo-java-driver</artifactId>
-            <version>2.5.3</version>
+            <version>2.6</version>
         </dependency>
         <dependency>
             <groupId>org.scala-tools.testing</groupId>
@@ -255,7 +255,7 @@
                     <plugin>
                         <groupId>org.codehaus.mojo</groupId>
                         <artifactId>cobertura-maven-plugin</artifactId>
-                        <version>2.3</version>
+                        <version>2.5.1</version>
                         <configuration>
                             <quiet>true</quiet>
                             <formats>
