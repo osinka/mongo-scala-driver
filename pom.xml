@@ -195,8 +195,8 @@
                     <encoding>UTF-8</encoding>
                     <properties>
                         <year>${project.inceptionYear}</year>
-                        <email>azarov@osinka.com</email>
-                        <author>Alexander Azarov</author>
+                        <email>http://osinka.ru</email>
+                        <author>Osinka</author>
                     </properties>
                 </configuration>
             </plugin>

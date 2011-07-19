@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import com.mongodb.{DBObject, DBCollection}
@@ -23,6 +22,8 @@ import wrapper.DBO
 /**
  * Shape of an object held in some other object (being it a Shape or Query). This trait
  * is most generic and used to declare embedded fields mostly.
+ * 
+ * @author Alexander Azarov <azarov@osinka.ru>
  */
 trait ObjectIn[T, QueryType] extends ShapeFields[T, QueryType] {
     type FactoryPF = PartialFunction[DBObject, T]
@@ -60,6 +61,8 @@ trait ObjectIn[T, QueryType] extends ShapeFields[T, QueryType] {
 
 /**
  * Shape of an object backed by DBObject ("hosted in")
+ * 
+ * @author Alexander Azarov <azarov@osinka.ru>
  */
 trait ObjectShape[T] extends Serializer[T] with ObjectIn[T, T] with Queriable[T] {
     // -- Serializer[T]
@@ -84,6 +87,8 @@ trait ObjectShape[T] extends Serializer[T] with ObjectIn[T, T] with Queriable[T]
  * Shape of MongoObject child.
  *
  * It has mandatory _id and _ns fields
+ * 
+ * @author Alexander Azarov <azarov@osinka.ru>
  */
 trait MongoObjectShape[T <: MongoObject] extends ObjectShape[T] {
     import org.bson.types.ObjectId

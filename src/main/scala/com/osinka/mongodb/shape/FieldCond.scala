@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import java.util.regex.Pattern
@@ -24,6 +23,8 @@ import MongoCondition._
 
 /**
  * Order direction base trait
+ * 
+ * @author Alexander Azarov <azarov@osinka.ru>
  */
 sealed trait SortOrder {
     def mongoOrder: Int
@@ -31,6 +32,8 @@ sealed trait SortOrder {
 
 /**
  * Methods to build constraints on fields.
+ * 
+ * @author Alexander Azarov <azarov@osinka.ru>
  */
 trait FieldQueryConditions[T, QueryType] { shape: ShapeFields[T, QueryType] =>
 

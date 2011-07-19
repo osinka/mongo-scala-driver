@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,13 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import com.osinka.mongodb._
 
 /**
  * Query factory for ObjectShape
+ * 
+ * @author Alexander Azarov <azarov@osinka.ru>
  */
 trait Queriable[T] { self: ObjectShape[T] =>
     type SortableFieldType = ObjectField with ScalarContentConditions[_]
@@ -98,6 +99,9 @@ trait Queriable[T] { self: ObjectShape[T] =>
     // TODO: Monadic query? http://github.com/alaz/mongo-scala-driver/issues#issue/13
 }
 
+/**
+ * @author Alexander Azarov <azarov@osinka.ru>
+ */
 sealed case class QueryTerm[+T](val qb: QueryBuilder) {
     def m = qb.m
 
@@ -108,6 +112,9 @@ sealed case class QueryTerm[+T](val qb: QueryBuilder) {
     def and[B >: T](q: QueryTerm[B]) = new QueryTerm[T](qb and q.qb)
 }
 
+/**
+ * @author Alexander Azarov <azarov@osinka.ru>
+ */
 object QueryTerm {
     def apply[T]() = new QueryTerm[T]( QueryBuilder() )
     def apply[T](tuple: (String, Any)) = new QueryTerm[T]( QueryBuilder(tuple) )

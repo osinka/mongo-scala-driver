@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import com.mongodb.{DBCollection, DBObject}
@@ -22,6 +21,8 @@ import wrapper._
 
 /**
  * Collecton of type T elements, where serializer is an ObjectShape
+ * 
+ * @author Alexander Azarov <azarov@osinka.ru>
  */
 class ShapedCollection[T](override val underlying: DBCollection, val shape: ObjectShape[T])
         extends MongoCollection[T]

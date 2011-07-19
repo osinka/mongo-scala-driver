@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb
 
 import com.mongodb.DBObject
@@ -21,7 +20,8 @@ import com.mongodb.DBObject
 /**
  * Generic serializer of objects to/from {@link DBObject}
  *
- * @param T type <code>T</code> is meant to be a Scala object reprensenting
+ * @author Alexander Azarov <azarov@osinka.ru>
+ * @tparam T type <code>T</code> is meant to be a Scala object reprensenting
  * MongoDB's DBObject.
  * @see com.osinka.mongodb.MongoCollection
  */
