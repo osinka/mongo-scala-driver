@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,12 +13,14 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import com.mongodb.DBCollection
 import com.osinka.mongodb._
 
+/**
+ * @author Alexander Azarov <azarov@osinka.com>
+ */
 trait Implicits {
     implicit def collOfShape(coll: DBCollection) = new {
         def of[T](element: ObjectShape[T]) = element.collection(coll)

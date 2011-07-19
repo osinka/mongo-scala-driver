@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import org.bson.types.ObjectId
@@ -23,6 +22,8 @@ import wrapper.DBO
 
 /**
  * Field declaration in a Shape
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait ObjectField {
     /**
@@ -49,6 +50,8 @@ trait ObjectField {
 
 /**
  * Abstract field container. Sometimes documents are nested one inside another.
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait FieldContainer {
     private[shape] def containerPath: List[String] = Nil
@@ -56,6 +59,8 @@ trait FieldContainer {
 
 /**
  * Field declaration builders for a Shape
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait ShapeFields[T, QueryType] extends FieldContainer
         with FieldQueryConditions[T, QueryType] with FieldModifyOperations[T, QueryType] { parent =>

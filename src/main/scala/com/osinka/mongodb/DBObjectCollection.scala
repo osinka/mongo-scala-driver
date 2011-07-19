@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb
 
 import com.mongodb.{DBCollection, DBObject}
@@ -21,6 +20,7 @@ import com.mongodb.{DBCollection, DBObject}
 /**
  * Collection of DBObjects
  *
+ * @author Alexander Azarov <azarov@osinka.com>
  * @see PlainDBOSerializer
  */
 class DBObjectCollection(override val underlying: DBCollection)
@@ -58,6 +58,8 @@ class DBObjectCollection(override val underlying: DBCollection)
 /**
  * Serializer of DBObject to DBObject: does nothing and passes the same
  * DBObject through
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 object PlainDBOSerializer extends Serializer[DBObject] {
     override def in(obj: DBObject) = obj

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.benchmark
 
 import com.mongodb._
@@ -29,6 +28,8 @@ import wrapper.DBO
  * The idea is to insert N objects into a collection and retrieve it using
  * pure Java API and using shapes. No sorting, no indexes -- I'd like to
  * measure de-serialization overhead only
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 object SerializationOverhead extends BenchmarkSuite("Serialization Overhead") { suite =>
     override val benchmarks = List(JavaRead, DBORead, ShapeCaseFuncRead, ShapeNoMongoFuncRead, ShapeNoMongoUpdateRead)

@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import scala.reflect.Manifest
@@ -24,6 +23,8 @@ import wrapper.DBO
 /**
  * Shape of an object held in some other object (being it a Shape or Query). This trait
  * is most generic and used to declare embedded fields mostly.
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType] {
     /**
@@ -73,6 +74,8 @@ trait ObjectIn[T, QueryType] extends Serializer[T] with ShapeFields[T, QueryType
 
 /**
  * Shape of an object backed by DBObject ("hosted in")
+ *
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait ObjectShape[T] extends ObjectIn[T, T] with Queriable[T] {
     /**
@@ -94,6 +97,8 @@ trait ObjectShape[T] extends ObjectIn[T, T] with Queriable[T] {
  * dbo match {
  *    case UserShape(u) =>
  * }
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait FunctionalShape[T] { self: ObjectShape[T] =>
     def apply(x: T): DBObject = in(x)
@@ -104,6 +109,8 @@ trait FunctionalShape[T] { self: ObjectShape[T] =>
  * Shape of MongoObject child.
  *
  * It has mandatory _id and _ns fields
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait MongoObjectShape[T <: MongoObject] extends ObjectShape[T] {
     import org.bson.types.ObjectId

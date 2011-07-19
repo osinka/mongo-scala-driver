@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb
 
 import org.bson.types.ObjectId
@@ -22,6 +21,8 @@ import wrapper._
 
 /**
  * Immutable MongoDB query object.
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 case class Query(final val query: DBObject,
                  val skip: Option[Int],
@@ -77,6 +78,8 @@ case class Query(final val query: DBObject,
 
 /**
  * Query factory
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 object Query {
     /**
@@ -100,6 +103,9 @@ object Query {
     def byId(oid: ObjectId) = apply(DBO.fromMap(Map("_id" -> oid)))
 }
 
+/**
+ * @author Alexander Azarov <azarov@osinka.com>
+ */
 sealed case class QueryBuilder(val m: Map[String, Any]) {
     def dbo = DBO.fromMap(m)
     def and(q: QueryBuilder) = {
@@ -121,6 +127,9 @@ sealed case class QueryBuilder(val m: Map[String, Any]) {
     }
 }
 
+/**
+ * @author Alexander Azarov <azarov@osinka.com>
+ */
 object QueryBuilder {
     def apply() = new QueryBuilder(Map.empty[String, Any])
     def apply(tuple: (String, Any)) = new QueryBuilder(Map(tuple))
@@ -130,6 +139,8 @@ object QueryBuilder {
 /**
  * Mix-in for MongoCollection descendants. Modifies the behavior so that the query is
  * applied
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait QueriedCollection[T, This <: QueriedCollection[T, This]] extends MongoCollection[T] {
     /**

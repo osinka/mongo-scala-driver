@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.benchmark
 
 import com.mongodb._
@@ -21,10 +20,17 @@ import scala.testing._
 import com.osinka.mongodb._
 import Config._
 
+/**
+ * @author Alexander Azarov <azarov@osinka.com>
+ */
+
 object ConstraintOverheadNoIndex extends AbstractConstraintOverhead("no indeces") {
     override def ensureIndex(maxArity: Int) {}
 }
 
+/**
+ * @author Alexander Azarov <azarov@osinka.com>
+ */
 object ConstraintOverheadWithIndex extends AbstractConstraintOverhead("with indeces") {
     override def ensureIndex(maxArity: Int) {
         // Single index per field
@@ -38,6 +44,8 @@ object ConstraintOverheadWithIndex extends AbstractConstraintOverhead("with inde
  * the overhead in reading the data or not. We are creating a collection with
  * 10 fields and are requesting the elements using 1-, 5- and 10-fields
  * shapes
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 abstract class AbstractConstraintOverhead(val extraText: String) extends BenchmarkSuite("Constraints overhead, "+extraText) { suite =>
     override val benchmarks = new FieldRead(1) :: new FieldRead(5) :: new FieldRead(10) :: Nil

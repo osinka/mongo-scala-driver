@@ -1,5 +1,5 @@
 /**
- * Copyright (C) 2009 Alexander Azarov <azarov@osinka.com>
+ * Copyright (C) 2009 Osinka <http://osinka.ru>
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package com.osinka.mongodb.shape
 
 import com.osinka.mongodb._
@@ -21,6 +20,8 @@ import wrapper.MongoOp
 
 /**
  * Update operations on fields
+ * 
+ * @author Alexander Azarov <azarov@osinka.com>
  */
 trait FieldModifyOperations[T, QueryType] { shape: ShapeFields[T, QueryType] =>
 
@@ -64,6 +65,9 @@ trait FieldModifyOperations[T, QueryType] { shape: ShapeFields[T, QueryType] =>
      }
 }
 
+/**
+ * @author Alexander Azarov <azarov@osinka.com>
+ */
 // TODO: Monadic query? http://github.com/alaz/mongo-scala-driver/issues#issue/13
 // TODO: unified ModifyOp with QueryTerm??
 sealed case class ModifyOp[+T](val qb: QueryBuilder) {
@@ -72,6 +76,9 @@ sealed case class ModifyOp[+T](val qb: QueryBuilder) {
     def and[B >: T](q: ModifyOp[B]) = new ModifyOp[T](qb and q.qb)
 }
 
+/**
+ * @author Alexander Azarov <azarov@osinka.com>
+ */
 object ModifyOp {
     def apply[T]() = new ModifyOp[T]( QueryBuilder() )
     def apply[T](tuple: (String, Any)) = new ModifyOp[T]( QueryBuilder(tuple) )
