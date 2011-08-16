@@ -3,7 +3,7 @@
     <modelVersion>4.0.0</modelVersion>
     <groupId>com.osinka</groupId>
     <artifactId>mongo-scala-driver</artifactId>
-    <version>0.8.13</version>
+    <version>0.8.14-SNAPSHOT</version>
     <packaging>bundle</packaging>
     <name>MongoDB driver for Scala</name>
     <inceptionYear>2009</inceptionYear>
